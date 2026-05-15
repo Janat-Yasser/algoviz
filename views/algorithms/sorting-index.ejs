@@ -1,0 +1,27 @@
+<div class="section" style="padding-top:48px">
+  <div class="section-header">
+    <div class="section-tag">📊 Sorting</div>
+    <h2 class="section-title">Sorting Algorithms</h2>
+    <p class="section-sub">Choose an algorithm to visualize step-by-step with code highlighting</p>
+  </div>
+  <div class="algo-grid">
+    <% algorithms.forEach(algo => { %>
+      <a href="/sorting/<%= algo.id %>" class="algo-card" style="--accent: <%= algo.color %>">
+        <div class="algo-card-top">
+          <span class="algo-emoji"><%= algo.emoji %></span>
+          <div class="algo-complexity">
+            <span class="complexity-label">Average</span>
+            <span class="complexity-val"><%= algo.complexity.time.average %></span>
+          </div>
+        </div>
+        <h3 class="algo-name"><%= algo.name %></h3>
+        <p class="algo-desc"><%= algo.description %></p>
+        <div class="algo-tags">
+          <span class="tag tag-space"><%= algo.complexity.space %> space</span>
+          <span class="tag <%= algo.stable ? 'tag-stable' : 'tag-unstable' %>"><%= algo.stable ? '✓ stable' : '✗ unstable' %></span>
+        </div>
+        <div class="algo-arrow">Visualize →</div>
+      </a>
+    <% }) %>
+  </div>
+</div>

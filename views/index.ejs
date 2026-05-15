@@ -1,0 +1,142 @@
+<div class="hero">
+  <div class="hero-bg">
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-orb orb-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-tag">✦ Interactive DSA Learning</div>
+    <h1 class="hero-title">
+      Understand Algorithms<br>
+      <span class="gradient-text">Visually.</span>
+    </h1>
+    <p class="hero-sub">
+      Watch every comparison, swap, and traversal animate step-by-step.
+      See the code highlight in real-time. Master Data Structures & Algorithms.
+    </p>
+    <div class="hero-actions">
+      <a href="/sorting/bubble" class="btn-primary">Start Visualizing →</a>
+      <a href="/sorting" class="btn-ghost">Browse Algorithms</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n">6</span><span>Sorting Algorithms</span></div>
+      <div class="stat-div"></div>
+      <div class="stat"><span class="stat-n">4</span><span>Pathfinding Algorithms</span></div>
+      <div class="stat-div"></div>
+      <div class="stat"><span class="stat-n">∞</span><span>Things to Learn</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sorting Section -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">📊 Sorting</div>
+    <h2 class="section-title">Sorting Algorithms</h2>
+    <p class="section-sub">From simple O(n²) to blazing O(n log n) — see exactly how each one works</p>
+  </div>
+  <div class="algo-grid">
+    <% sorting.forEach(algo => { %>
+      <a href="/sorting/<%= algo.id %>" class="algo-card" style="--accent: <%= algo.color %>">
+        <div class="algo-card-top">
+          <span class="algo-emoji"><%= algo.emoji %></span>
+          <div class="algo-complexity">
+            <span class="complexity-label">Avg</span>
+            <span class="complexity-val"><%= algo.complexity.time.average %></span>
+          </div>
+        </div>
+        <h3 class="algo-name"><%= algo.name %></h3>
+        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
+        <div class="algo-tags">
+          <span class="tag tag-space"><%= algo.complexity.space %> space</span>
+          <span class="tag <%= algo.stable ? 'tag-stable' : 'tag-unstable' %>"><%= algo.stable ? '✓ stable' : '✗ unstable' %></span>
+        </div>
+        <div class="algo-arrow">Visualize →</div>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<!-- Pathfinding Section -->
+<section class="section section-dark">
+  <div class="section-header">
+    <div class="section-tag">🗺️ Pathfinding</div>
+    <h2 class="section-title">Pathfinding Algorithms</h2>
+    <p class="section-sub">Draw walls, set start & end points, watch algorithms navigate the grid</p>
+  </div>
+  <div class="algo-grid">
+    <% pathfinding.forEach(algo => { %>
+      <a href="/pathfinding?algo=<%= algo.id %>" class="algo-card" style="--accent: <%= algo.color %>">
+        <div class="algo-card-top">
+          <span class="algo-emoji"><%= algo.emoji %></span>
+          <div class="algo-complexity">
+            <span class="complexity-label">Time</span>
+            <span class="complexity-val"><%= algo.complexity.time.average %></span>
+          </div>
+        </div>
+        <h3 class="algo-name"><%= algo.name %></h3>
+        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
+        <div class="algo-arrow">Visualize →</div>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<!-- Trees Section -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">🌳 Trees</div>
+    <h2 class="section-title">Tree Data Structures</h2>
+    <p class="section-sub">Insert, delete, and search — watch the tree restructure itself live</p>
+  </div>
+  <div class="algo-grid algo-grid-center">
+    <% trees.forEach(algo => { %>
+      <a href="/trees" class="algo-card" style="--accent: <%= algo.color %>">
+        <div class="algo-card-top">
+          <span class="algo-emoji"><%= algo.emoji %></span>
+          <div class="algo-complexity">
+            <span class="complexity-label">Avg</span>
+            <span class="complexity-val"><%= algo.complexity.time.average %></span>
+          </div>
+        </div>
+        <h3 class="algo-name"><%= algo.name %></h3>
+        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
+        <div class="algo-arrow">Visualize →</div>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<!-- Complexity Cheat Sheet -->
+<section class="section section-dark cheatsheet-section">
+  <div class="section-header">
+    <div class="section-tag">📋 Reference</div>
+    <h2 class="section-title">Complexity Cheat Sheet</h2>
+  </div>
+  <div class="cheatsheet-table-wrap">
+    <table class="cheatsheet-table">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Best</th>
+          <th>Average</th>
+          <th>Worst</th>
+          <th>Space</th>
+          <th>Stable</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sorting.forEach(algo => { %>
+          <tr>
+            <td><a href="/sorting/<%= algo.id %>" class="table-link"><%= algo.emoji %> <%= algo.name %></a></td>
+            <td class="<%= algo.complexity.time.best.includes('n²') ? 'complexity-bad' : algo.complexity.time.best.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.best %></td>
+            <td class="<%= algo.complexity.time.average.includes('n²') ? 'complexity-bad' : algo.complexity.time.average.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.average %></td>
+            <td class="<%= algo.complexity.time.worst.includes('n²') ? 'complexity-bad' : algo.complexity.time.worst.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.worst %></td>
+            <td><%= algo.complexity.space %></td>
+            <td><%= algo.stable ? '✅' : '❌' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>

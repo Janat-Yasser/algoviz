@@ -1,0 +1,130 @@
+<div class="viz-page">
+  <!-- Sidebar: algo picker -->
+  <aside class="viz-sidebar">
+    <div class="sidebar-head">
+      <a href="/" class="back-link">← Home</a>
+      <h3>Sorting</h3>
+    </div>
+    <nav class="algo-nav">
+      <% allAlgos.forEach(a => { %>
+        <a href="/sorting/<%= a.id %>"
+           class="algo-nav-item <%= a.id === algo.id ? 'active' : '' %>"
+           style="--accent: <%= a.color %>">
+          <span><%= a.emoji %></span>
+          <span><%= a.name %></span>
+          <span class="nav-complexity"><%= a.complexity.time.average %></span>
+        </a>
+      <% }) %>
+    </nav>
+
+    <!-- Complexity panel -->
+    <div class="complexity-panel">
+      <h4>Complexity</h4>
+      <div class="complexity-grid">
+        <div class="c-item">
+          <span class="c-label">Best</span>
+          <span class="c-val c-<%= algo.complexity.time.best.includes('n²') ? 'bad' : algo.complexity.time.best.includes('log') ? 'good' : 'ok' %>"><%= algo.complexity.time.best %></span>
+        </div>
+        <div class="c-item">
+          <span class="c-label">Average</span>
+          <span class="c-val c-<%= algo.complexity.time.average.includes('n²') ? 'bad' : algo.complexity.time.average.includes('log') ? 'good' : 'ok' %>"><%= algo.complexity.time.average %></span>
+        </div>
+        <div class="c-item">
+          <span class="c-label">Worst</span>
+          <span class="c-val c-<%= algo.complexity.time.worst.includes('n²') ? 'bad' : algo.complexity.time.worst.includes('log') ? 'good' : 'ok' %>"><%= algo.complexity.time.worst %></span>
+        </div>
+        <div class="c-item">
+          <span class="c-label">Space</span>
+          <span class="c-val c-ok"><%= algo.complexity.space %></span>
+        </div>
+      </div>
+      <div class="stability-badge <%= algo.stable ? 'stable' : 'unstable' %>">
+        <%= algo.stable ? '✓ Stable Sort' : '✗ Unstable Sort' %>
+      </div>
+    </div>
+
+    <div class="use-cases-panel">
+      <h4>Use Cases</h4>
+      <p><%= algo.useCases %></p>
+    </div>
+  </aside>
+
+  <!-- Main visualizer -->
+  <div class="viz-main">
+    <!-- Header -->
+    <div class="viz-header">
+      <div>
+        <h1 class="viz-title" style="color: <%= algo.color %>"><%= algo.emoji %> <%= algo.name %></h1>
+        <p class="viz-desc"><%= algo.description %></p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+      <div class="controls-left">
+        <button id="btnPlay" class="btn-control btn-play" onclick="startSort()">▶ Play</button>
+        <button id="btnPause" class="btn-control btn-pause" onclick="pauseSort()" disabled>⏸ Pause</button>
+        <button id="btnStep" class="btn-control btn-step" onclick="stepSort()">⏭ Step</button>
+        <button id="btnReset" class="btn-control btn-reset" onclick="resetSort()">↺ Reset</button>
+        <button class="btn-control btn-shuffle" onclick="shuffleArray()">🔀 Shuffle</button>
+      </div>
+      <div class="controls-right">
+        <div class="control-group">
+          <label>Size <span id="sizeVal">30</span></label>
+          <input type="range" id="sizeSlider" min="8" max="80" value="30" oninput="updateSize(this.value)">
+        </div>
+        <div class="control-group">
+          <label>Speed <span id="speedVal">5</span></label>
+          <input type="range" id="speedSlider" min="1" max="10" value="5" oninput="updateSpeed(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-pill">Comparisons: <strong id="statComparisons">0</strong></div>
+      <div class="stat-pill">Swaps: <strong id="statSwaps">0</strong></div>
+      <div class="stat-pill">Array Accesses: <strong id="statAccesses">0</strong></div>
+      <div class="stat-pill">Time: <strong id="statTime">0ms</strong></div>
+      <div class="stat-pill status-pill" id="statusPill">Ready</div>
+    </div>
+
+    <!-- Visualizer canvas -->
+    <div class="viz-canvas" id="vizCanvas">
+      <div class="bars-container" id="barsContainer"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#6b7280"></span>Unsorted</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Comparing</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Swapping</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>Pivot</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Sorted</div>
+    </div>
+
+    <!-- Code panel -->
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="code-panel-title">💻 Source Code — <%= algo.name %></span>
+        <span class="code-hint">Lines highlight as the algorithm executes</span>
+      </div>
+      <div class="code-body">
+        <pre class="code-pre" id="codeDisplay"><code id="codeLines"></code></pre>
+      </div>
+    </div>
+
+    <!-- Step explanation -->
+    <div class="explanation-box" id="explanationBox">
+      <div class="explanation-icon">💡</div>
+      <div id="explanationText">Press <strong>Play</strong> or <strong>Step</strong> to start the visualization.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ALGO_ID = '<%= algo.id %>';
+  const ALGO_COLOR = '<%= algo.color %>';
+  const ALGO_CODE = `<%= algo.code.replace(/`/g, '\\`') %>`;
+</script>
+<script src="/js/algorithms/sorting.js"></script>

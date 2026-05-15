@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-logo">
+      <div class="logo-icon">⚡</div>
+      <span>Algo<strong>Viz</strong></span>
+    </a>
+    <div class="nav-links">
+      <a href="/sorting" class="nav-link">Sorting</a>
+      <a href="/pathfinding" class="nav-link">Pathfinding</a>
+      <a href="/trees" class="nav-link">Trees</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-badge">DSA Learning Tool</span>
+    </div>
+  </nav>
+
+  <main><%- body %></main>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>
