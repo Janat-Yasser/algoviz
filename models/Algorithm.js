@@ -14,14 +14,14 @@ const algorithms = {
       code: `function bubbleSort(arr) {
   const n = arr.length;
   for (let i = 0; i < n - 1; i++) {       // outer loop
+    let swapped = false;
     for (let j = 0; j < n - i - 1; j++) { // inner loop
       if (arr[j] > arr[j + 1]) {           // compare
-        // swap
-        let temp = arr[j];
-        arr[j] = arr[j + 1];
-        arr[j + 1] = temp;
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; // swap
+        swapped = true;
       }
     }
+    if (!swapped) break;                  // no swaps: already sorted
   }
   return arr;
 }`

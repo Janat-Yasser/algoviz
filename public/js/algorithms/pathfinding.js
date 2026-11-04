@@ -1,30 +1,151 @@
 /* =============================================
    PATHFINDING VISUALIZER
    Grid-based with Dijkstra, A*, BFS, DFS
+
+   The search runs first as a pure function (computeSearch) that records
+   every event; the animation then plays those events back. Editing the grid
+   while an animation is playing cancels it cleanly.
+
+   Colours mean the same thing for every algorithm:
+     frontier = discovered, waiting to be explored
+     visited  = taken off the frontier and explored (this is what we count)
    ============================================= */
 
 const ROWS = 20, COLS = 40;
-let grid = [];
+let walls = [];                 // walls[r][c] === true
 let startCell = { r: 10, c: 5 };
 let endCell = { r: 10, c: 34 };
 let mouseDown = false;
 let drawMode = 'wall';
 let pfSpeed = 5;
+let runId = 0;                  // bumping this cancels any animation in progress
 let running = false;
 
-// ── Grid init ──────────────────────────────────
+// ── Pure search (no DOM) ───────────────────────
+const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+const key = (r, c) => r * COLS + c;
+
+function neighbors(wallGrid, r, c, rows = ROWS, cols = COLS) {
+  const out = [];
+  for (const [dr, dc] of DIRS) {
+    const nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !wallGrid[nr][nc]) out.push([nr, nc]);
+  }
+  return out;
+}
+
+const manhattan = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+
+// Tiny binary min-heap keyed by priority, with insertion order as a tie-break
+// so results are deterministic.
+class MinHeap {
+  constructor() { this.a = []; this.n = 0; }
+  get size() { return this.a.length; }
+  push(item, pri) { this.a.push({ item, pri, seq: this.n++ }); this._up(this.a.length - 1); }
+  pop() {
+    const top = this.a[0], last = this.a.pop();
+    if (this.a.length) { this.a[0] = last; this._down(0); }
+    return top.item;
+  }
+  _less(i, j) { const x = this.a[i], y = this.a[j]; return x.pri < y.pri || (x.pri === y.pri && x.seq < y.seq); }
+  _up(i) { while (i > 0) { const p = (i - 1) >> 1; if (!this._less(i, p)) break; [this.a[i], this.a[p]] = [this.a[p], this.a[i]]; i = p; } }
+  _down(i) {
+    for (;;) {
+      const l = 2 * i + 1, r = l + 1; let m = i;
+      if (l < this.a.length && this._less(l, m)) m = l;
+      if (r < this.a.length && this._less(r, m)) m = r;
+      if (m === i) return;
+      [this.a[i], this.a[m]] = [this.a[m], this.a[i]]; i = m;
+    }
+  }
+}
+
+/**
+ * Run a search and record what happens.
+ * @returns {{ events: {type:'frontier'|'visit', r:number, c:number}[], path: {r,c}[], found: boolean, visited: number }}
+ */
+function computeSearch(algo, wallGrid, start, end, rows = ROWS, cols = COLS) {
+  const events = [];
+  const prev = new Map();
+  const seen = new Set([key(start.r, start.c)]);   // discovered
+  const done = new Set();                           // explored
+  let found = false;
+
+  const visit = (r, c) => { done.add(key(r, c)); events.push({ type: 'visit', r, c }); };
+  const discover = (r, c, from) => {
+    seen.add(key(r, c));
+    prev.set(key(r, c), from);
+    events.push({ type: 'frontier', r, c });
+  };
+  const isEnd = (r, c) => r === end.r && c === end.c;
+
+  if (algo === 'bfs') {
+    const queue = [[start.r, start.c]];
+    for (let qi = 0; qi < queue.length; qi++) {
+      const [r, c] = queue[qi];
+      visit(r, c);
+      if (isEnd(r, c)) { found = true; break; }
+      for (const [nr, nc] of neighbors(wallGrid, r, c, rows, cols)) {
+        if (!seen.has(key(nr, nc))) { discover(nr, nc, [r, c]); queue.push([nr, nc]); }
+      }
+    }
+  } else if (algo === 'dfs') {
+    // True depth-first: a cell is explored when popped, and we always dive into
+    // the most recently discovered branch first.
+    const stack = [[start.r, start.c, null]];
+    while (stack.length) {
+      const [r, c, from] = stack.pop();
+      const k = key(r, c);
+      if (done.has(k)) continue;
+      if (from) prev.set(k, from);
+      visit(r, c);
+      if (isEnd(r, c)) { found = true; break; }
+      const nbs = neighbors(wallGrid, r, c, rows, cols).filter(([nr, nc]) => !done.has(key(nr, nc)));
+      for (let i = nbs.length - 1; i >= 0; i--) {
+        const [nr, nc] = nbs[i];
+        if (!seen.has(key(nr, nc))) { seen.add(key(nr, nc)); events.push({ type: 'frontier', r: nr, c: nc }); }
+        stack.push([nr, nc, [r, c]]);
+      }
+    }
+  } else {
+    // Dijkstra (h = 0) and A* (h = Manhattan distance) share one implementation.
+    const useH = algo === 'astar';
+    const g = new Map([[key(start.r, start.c), 0]]);
+    const open = new MinHeap();
+    open.push([start.r, start.c], useH ? manhattan(start, end) : 0);
+    while (open.size) {
+      const [r, c] = open.pop();
+      const k = key(r, c);
+      if (done.has(k)) continue;              // stale heap entry
+      visit(r, c);
+      if (isEnd(r, c)) { found = true; break; }
+      for (const [nr, nc] of neighbors(wallGrid, r, c, rows, cols)) {
+        const nk = key(nr, nc);
+        if (done.has(nk)) continue;
+        const cand = g.get(k) + 1;
+        if (cand < (g.has(nk) ? g.get(nk) : Infinity)) {
+          g.set(nk, cand);
+          if (!seen.has(nk)) discover(nr, nc, [r, c]); else prev.set(nk, [r, c]);
+          open.push([nr, nc], cand + (useH ? manhattan({ r: nr, c: nc }, end) : 0));
+        }
+      }
+    }
+  }
+
+  const path = [];
+  if (found) {
+    let cur = [end.r, end.c];
+    while (cur && !(cur[0] === start.r && cur[1] === start.c)) {
+      path.unshift({ r: cur[0], c: cur[1] });
+      cur = prev.get(key(cur[0], cur[1]));
+    }
+  }
+  return { events, path, found, visited: done.size };
+}
+
+// ── Grid + DOM ─────────────────────────────────
 function initGrid() {
-  grid = Array.from({ length: ROWS }, (_, r) =>
-    Array.from({ length: COLS }, (_, c) => ({
-      r, c,
-      wall: false,
-      visited: false,
-      path: false,
-      g: Infinity, h: 0, f: Infinity,
-      dist: Infinity,
-      prev: null
-    }))
-  );
+  walls = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
   renderGrid();
 }
 
@@ -36,50 +157,40 @@ function renderGrid() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = document.createElement('div');
-      cell.className = 'pf-cell';
       cell.dataset.r = r;
       cell.dataset.c = c;
       updateCellClass(cell, r, c);
-      cell.addEventListener('mousedown', (e) => { mouseDown = true; handleCellInteract(r, c); });
+      cell.addEventListener('mousedown', () => { mouseDown = true; handleCellInteract(r, c); });
       cell.addEventListener('mouseenter', () => { if (mouseDown) handleCellInteract(r, c); });
-      cell.addEventListener('mouseup', () => { mouseDown = false; });
       el.appendChild(cell);
     }
   }
-  document.addEventListener('mouseup', () => { mouseDown = false; });
 }
 
 function updateCellClass(cell, r, c) {
-  const node = grid[r][c];
   cell.className = 'pf-cell';
   if (r === startCell.r && c === startCell.c) cell.classList.add('start');
   else if (r === endCell.r && c === endCell.c) cell.classList.add('end');
-  else if (node.wall) cell.classList.add('wall');
-  else if (node.path) cell.classList.add('path');
-  else if (node.visited) cell.classList.add('visited');
+  else if (walls[r][c]) cell.classList.add('wall');
 }
 
 function getCellEl(r, c) {
-  return document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+  const el = document.getElementById('pfGrid');
+  return el ? el.children[r * COLS + c] : null;
 }
 
+const isStartOrEnd = (r, c) => (r === startCell.r && c === startCell.c) || (r === endCell.r && c === endCell.c);
+
 function handleCellInteract(r, c) {
+  cancelRun();
   if (drawMode === 'wall') {
-    if ((r === startCell.r && c === startCell.c) || (r === endCell.r && c === endCell.c)) return;
-    grid[r][c].wall = !grid[r][c].wall;
-    const el = getCellEl(r, c);
-    if (el) updateCellClass(el, r, c);
-  } else if (drawMode === 'start') {
-    const old = getCellEl(startCell.r, startCell.c);
-    startCell = { r, c };
-    grid[r][c].wall = false;
-    if (old) updateCellClass(old, startCell.r, startCell.c);
-    const el = getCellEl(r, c);
-    if (el) el.className = 'pf-cell start';
-    setMode('wall');
-  } else if (drawMode === 'end') {
-    endCell = { r, c };
-    grid[r][c].wall = false;
+    if (isStartOrEnd(r, c)) return;
+    walls[r][c] = !walls[r][c];
+    updateCellClass(getCellEl(r, c), r, c);
+  } else {
+    if (drawMode === 'start' && !(r === endCell.r && c === endCell.c)) startCell = { r, c };
+    if (drawMode === 'end' && !(r === startCell.r && c === startCell.c)) endCell = { r, c };
+    walls[r][c] = false;
     renderGrid();
     setMode('wall');
   }
@@ -91,185 +202,84 @@ function setMode(mode) {
   document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1))?.classList.add('active');
 }
 
-// ── Algorithms ─────────────────────────────────
-function getNeighbors(r, c) {
-  const dirs = [[0,1],[1,0],[0,-1],[-1,0]];
-  return dirs
-    .map(([dr, dc]) => [r+dr, c+dc])
-    .filter(([nr, nc]) => nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !grid[nr][nc].wall)
-    .map(([nr, nc]) => grid[nr][nc]);
-}
+const EXPLAIN = {
+  bfs: 'BFS explores layer by layer using a queue — guarantees the shortest path in an unweighted grid.',
+  dfs: 'DFS dives as deep as it can down one branch before backtracking (a stack) — it does NOT guarantee the shortest path.',
+  dijkstra: "Dijkstra's always explores the closest unexplored cell (a priority queue). On this grid every step costs 1, so it spreads like BFS; with weighted cells it would still find the cheapest path.",
+  astar: 'A* is Dijkstra plus a heuristic (Manhattan distance to the goal) that pulls the search toward the target — same shortest path, usually far fewer cells explored.',
+};
 
-function heuristic(a, b) {
-  return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+function cancelRun() {
+  if (!running) return;
+  runId++;
+  running = false;
+  clearPathVisuals();
+  document.getElementById('pfStatus').textContent = 'Draw walls, then Visualize';
 }
 
 async function runPathfinding() {
-  if (running) return;
+  cancelRun();
   clearPath();
+  const myRun = ++runId;
   running = true;
-  document.getElementById('pfStatus').textContent = 'Running...';
-  document.getElementById('pfVisited').textContent = '0';
-  document.getElementById('pfPath').textContent = '0';
-
+  const cancelled = () => myRun !== runId;
   const delay = () => new Promise(res => setTimeout(res, Math.max(2, 60 - pfSpeed * 6)));
-  let visitedCount = 0;
-  const startNode = grid[startCell.r][startCell.c];
-  const endNode = grid[endCell.r][endCell.c];
 
-  // Reset grid state
-  for (let r = 0; r < ROWS; r++)
-    for (let c = 0; c < COLS; c++) {
-      grid[r][c].visited = false;
-      grid[r][c].path = false;
-      grid[r][c].prev = null;
-      grid[r][c].dist = Infinity;
-      grid[r][c].g = Infinity;
-      grid[r][c].f = Infinity;
-    }
+  document.getElementById('pfStatus').textContent = 'Running...';
+  explain(EXPLAIN[PF_ALGO] || '');
 
-  let found = false;
+  const result = computeSearch(PF_ALGO, walls, startCell, endCell);
+  let visitedShown = 0;
 
-  if (PF_ALGO === 'bfs') {
-    const queue = [startNode];
-    startNode.visited = true;
-    explain('BFS explores layer by layer using a queue — guarantees shortest path in unweighted graphs.');
-    while (queue.length > 0) {
-      const node = queue.shift();
-      if (node === endNode) { found = true; break; }
-      for (const nb of getNeighbors(node.r, node.c)) {
-        if (!nb.visited) {
-          nb.visited = true;
-          nb.prev = node;
-          queue.push(nb);
-          visitedCount++;
-          document.getElementById('pfVisited').textContent = visitedCount;
-          const el = getCellEl(nb.r, nb.c);
-          if (el && !(nb.r === endCell.r && nb.c === endCell.c)) el.classList.add('visited');
-          await delay();
-        }
+  for (const ev of result.events) {
+    if (cancelled()) return;
+    if (!isStartOrEnd(ev.r, ev.c)) {
+      const el = getCellEl(ev.r, ev.c);
+      if (el) {
+        if (ev.type === 'frontier') el.classList.add('frontier');
+        else { el.classList.remove('frontier'); el.classList.add('visited'); }
       }
     }
-  }
-
-  else if (PF_ALGO === 'dfs') {
-    const stack = [startNode];
-    startNode.visited = true;
-    explain('DFS dives deep using a stack — does NOT guarantee shortest path.');
-    while (stack.length > 0) {
-      const node = stack.pop();
-      if (node === endNode) { found = true; break; }
-      for (const nb of getNeighbors(node.r, node.c)) {
-        if (!nb.visited) {
-          nb.visited = true;
-          nb.prev = node;
-          stack.push(nb);
-          visitedCount++;
-          document.getElementById('pfVisited').textContent = visitedCount;
-          const el = getCellEl(nb.r, nb.c);
-          if (el && !(nb.r === endCell.r && nb.c === endCell.c)) el.classList.add('visited');
-          await delay();
-        }
-      }
-    }
-  }
-
-  else if (PF_ALGO === 'dijkstra') {
-    startNode.dist = 0;
-    const unvisited = new Set();
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) unvisited.add(grid[r][c]);
-    explain("Dijkstra's explores by minimum distance — guarantees shortest path even in weighted graphs.");
-    while (unvisited.size > 0) {
-      let node = [...unvisited].reduce((a, b) => a.dist < b.dist ? a : b);
-      if (node.dist === Infinity) break;
-      unvisited.delete(node);
-      if (node === endNode) { found = true; break; }
-      for (const nb of getNeighbors(node.r, node.c)) {
-        const alt = node.dist + 1;
-        if (alt < nb.dist) {
-          nb.dist = alt;
-          nb.prev = node;
-          nb.visited = true;
-          visitedCount++;
-          document.getElementById('pfVisited').textContent = visitedCount;
-          const el = getCellEl(nb.r, nb.c);
-          if (el && !(nb.r === endCell.r && nb.c === endCell.c)) el.classList.add('visited');
-          await delay();
-        }
-      }
-    }
-  }
-
-  else if (PF_ALGO === 'astar') {
-    startNode.g = 0;
-    startNode.h = heuristic(startNode, endNode);
-    startNode.f = startNode.h;
-    const openSet = [startNode];
-    const closedSet = new Set();
-    explain('A* uses a heuristic (Manhattan distance) to guide search — faster than Dijkstra for single targets.');
-    while (openSet.length > 0) {
-      openSet.sort((a, b) => a.f - b.f);
-      const node = openSet.shift();
-      if (node === endNode) { found = true; break; }
-      closedSet.add(node);
-      node.visited = true;
-      visitedCount++;
-      document.getElementById('pfVisited').textContent = visitedCount;
-      const el = getCellEl(node.r, node.c);
-      if (el && !(node.r === startCell.r && node.c === startCell.c) && !(node.r === endCell.r && node.c === endCell.c)) el.classList.add('visited');
+    if (ev.type === 'visit') {
+      visitedShown++;
+      document.getElementById('pfVisited').textContent = visitedShown;
       await delay();
-      for (const nb of getNeighbors(node.r, node.c)) {
-        if (closedSet.has(nb)) continue;
-        const gNew = node.g + 1;
-        if (gNew < nb.g) {
-          nb.g = gNew;
-          nb.h = heuristic(nb, endNode);
-          nb.f = nb.g + nb.h;
-          nb.prev = node;
-          if (!openSet.includes(nb)) openSet.push(nb);
-        }
-      }
     }
   }
 
-  if (found) {
-    // Trace path
-    let path = [];
-    let cur = endNode;
-    while (cur && cur !== startNode) { path.unshift(cur); cur = cur.prev; }
-    document.getElementById('pfPath').textContent = path.length;
-    for (const node of path) {
-      if (node === endNode) continue;
-      const el = getCellEl(node.r, node.c);
-      if (el) { el.classList.remove('visited'); el.classList.add('path'); }
+  if (result.found) {
+    document.getElementById('pfPath').textContent = result.path.length;
+    for (const { r, c } of result.path) {
+      if (cancelled()) return;
+      if (isStartOrEnd(r, c)) continue;
+      const el = getCellEl(r, c);
+      if (el) { el.classList.remove('visited', 'frontier'); el.classList.add('path'); }
       await new Promise(res => setTimeout(res, 30));
     }
-    document.getElementById('pfStatus').textContent = `✅ Path found! Length: ${path.length}`;
-    explain(`✅ Path found! Visited ${visitedCount} cells, path length = ${path.length}.`);
+    document.getElementById('pfStatus').textContent = `✅ Path found! Length: ${result.path.length}`;
+    explain(`✅ Path found! Explored ${result.visited} cells, path length = ${result.path.length}.`);
   } else {
     document.getElementById('pfStatus').textContent = '❌ No path found!';
-    explain('❌ No path found — the destination is blocked by walls.');
+    explain('❌ No path found — the destination is walled off.');
   }
   running = false;
 }
 
+function clearPathVisuals() {
+  const el = document.getElementById('pfGrid');
+  if (el) for (const cell of el.children) cell.classList.remove('visited', 'path', 'frontier');
+}
+
 function clearPath() {
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      grid[r][c].visited = false;
-      grid[r][c].path = false;
-      grid[r][c].prev = null;
-      const el = getCellEl(r, c);
-      if (el) { el.classList.remove('visited', 'path', 'frontier'); }
-    }
-  }
+  cancelRun();
+  clearPathVisuals();
   document.getElementById('pfVisited').textContent = '0';
   document.getElementById('pfPath').textContent = '0';
   document.getElementById('pfStatus').textContent = 'Draw walls, then Visualize';
 }
 
 function clearGrid() {
-  running = false;
+  cancelRun();
   initGrid();
   document.getElementById('pfVisited').textContent = '0';
   document.getElementById('pfPath').textContent = '0';
@@ -279,17 +289,17 @@ function clearGrid() {
 
 function generateMaze() {
   clearGrid();
-  // Recursive division maze
+  // Random obstacles (30% of cells). Not every random maze has a path, which is
+  // a good way to see each algorithm prove "no path" too.
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++)
-      if (Math.random() < 0.3 && !(r === startCell.r && c === startCell.c) && !(r === endCell.r && c === endCell.c))
-        grid[r][c].wall = true;
+      if (Math.random() < 0.3 && !isStartOrEnd(r, c)) walls[r][c] = true;
   renderGrid();
   explain('Random maze generated! Press Visualize to find the path.');
 }
 
 function updatePfSpeed(val) {
-  pfSpeed = parseInt(val);
+  pfSpeed = parseInt(val, 10);
   document.getElementById('pfSpeedVal').textContent = val;
 }
 
@@ -298,4 +308,9 @@ function explain(text) {
   if (el) el.innerHTML = text;
 }
 
-document.addEventListener('DOMContentLoaded', initGrid);
+// (exported for unit tests under Node; the browser ignores this)
+if (typeof module !== 'undefined') module.exports = { computeSearch, MinHeap };
+if (typeof document !== 'undefined') {
+  document.addEventListener('mouseup', () => { mouseDown = false; }); // registered once
+  document.addEventListener('DOMContentLoaded', initGrid);
+}

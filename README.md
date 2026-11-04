@@ -59,7 +59,17 @@ algoviz/
     └── js/algorithms/         # The animation engines (sorting.js, pathfinding.js, trees.js)
 ```
 
-The server only renders pages and serves algorithm metadata. All the animation runs client-side in plain JavaScript, with no framework. Each algorithm emits a list of steps that the renderer plays back, so pause and speed control come for free.
+The server only renders pages and serves algorithm metadata. All the animation runs client-side in plain JavaScript, with no framework. Each algorithm first runs as a pure function that records every step, and the renderer plays those steps back. That gives pause, single-step and speed control for free, lets you edit the grid or tree mid-animation without corrupting it, and makes the algorithms unit-testable.
+
+In pathfinding, **frontier** (discovered) and **visited** (explored) mean the same thing for every algorithm, so the "Visited" counts are directly comparable. A\* explores far fewer cells than Dijkstra for the same shortest path.
+
+## Tests
+
+```bash
+npm test
+```
+
+The tests check that every sort ends sorted, that the highlighted code lines exist, that BFS, Dijkstra and A\* agree on the shortest path, that the paths are valid, and that the BST keeps its ordering.
 
 ## Roadmap
 

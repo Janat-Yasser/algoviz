@@ -19,14 +19,14 @@ const CODE_LINES = {
     'function bubbleSort(arr) {',
     '  const n = arr.length;',
     '  for (let i = 0; i < n - 1; i++) {       // outer loop',
+    '    let swapped = false;',
     '    for (let j = 0; j < n - i - 1; j++) { // inner loop',
     '      if (arr[j] > arr[j + 1]) {           // compare',
-    '        // swap',
-    '        let temp = arr[j];',
-    '        arr[j] = arr[j + 1];',
-    '        arr[j + 1] = temp;',
+    '        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; // swap',
+    '        swapped = true;',
     '      }',
     '    }',
+    '    if (!swapped) break;                  // no swaps: already sorted',
     '  }',
     '  return arr;',
     '}'
@@ -159,17 +159,24 @@ function generateSteps(arr, algoId) {
     addStep(a, [], [], [], [], [], 0, 'Starting Bubble Sort — we will compare adjacent elements and swap if out of order.');
     for (let i = 0; i < n - 1; i++) {
       addStep(a, [], [], [], [], [...sortedSet], 2, `Outer loop: i = ${i}. Elements at indices ${n-i} to ${n-1} are already in place.`);
+      let swapped = false;
       for (let j = 0; j < n - i - 1; j++) {
-        addStep(a, [], [j, j+1], [], [], [...sortedSet], 4, `Comparing arr[${j}]=${a[j]} and arr[${j+1}]=${a[j+1]}.`);
+        addStep(a, [], [j, j+1], [], [], [...sortedSet], 5, `Comparing arr[${j}]=${a[j]} and arr[${j+1}]=${a[j+1]}.`);
         if (a[j] > a[j+1]) {
           addStep(a, [], [], [j, j+1], [], [...sortedSet], 6, `arr[${j}]=${a[j]} > arr[${j+1}]=${a[j+1]} — swapping!`);
           [a[j], a[j+1]] = [a[j+1], a[j]];
-          addStep(a, [], [], [], [], [...sortedSet], 8, `Swapped! arr[${j}]=${a[j]}, arr[${j+1}]=${a[j+1]}.`);
+          swapped = true;
+          addStep(a, [], [], [], [], [...sortedSet], 7, `Swapped! arr[${j}]=${a[j]}, arr[${j+1}]=${a[j+1]}.`);
         }
       }
       sortedSet.add(n - 1 - i);
+      if (!swapped) {
+        for (let k = 0; k < n - i; k++) sortedSet.add(k);
+        addStep(a, [], [], [], [], [...sortedSet], 10, `No swaps in this pass, so the rest is already sorted. Stopping early.`);
+        break;
+      }
     }
-    sortedSet.add(0);
+    for (let k = 0; k < n; k++) sortedSet.add(k);
     addStep(a, [], [], [], [], [...sortedSet], 12, '✅ Array is fully sorted!');
   }
 
@@ -222,9 +229,11 @@ function generateSteps(arr, algoId) {
 
   else if (algoId === 'merge') {
     addStep(a, [], [], [], [], [], 0, 'Starting Merge Sort — divide the array in half recursively, then merge sorted halves.');
+    // Nothing is in its FINAL position until the last merge, so only the
+    // just-merged range is highlighted while working; green comes at the end.
     const sortedFinal = new Set();
     function mergeSteps(arr, left, right) {
-      if (left >= right) { sortedFinal.add(left); return; }
+      if (left >= right) return;
       const mid = Math.floor((left + right) / 2);
       addStep(arr, [], [], [], [], [...sortedFinal], 2, `Dividing: indices ${left}…${right}, midpoint = ${mid}.`);
       mergeSteps(arr, left, mid);
@@ -246,8 +255,10 @@ function generateSteps(arr, algoId) {
       }
       while (i < leftArr.length) { arr[k++] = leftArr[i++]; }
       while (j < rightArr.length) { arr[k++] = rightArr[j++]; }
-      for (let x = left; x <= right; x++) sortedFinal.add(x);
-      addStep(arr, [], [], [], [], [...sortedFinal], 18, `Merged subarray [${left}…${right}]: [${arr.slice(left, right+1).join(', ')}].`);
+      const merged = [];
+      for (let x = left; x <= right; x++) merged.push(x);
+      if (left === 0 && right === arr.length - 1) merged.forEach(x => sortedFinal.add(x));
+      addStep(arr, merged, [], [], [], [...sortedFinal], 18, `Merged subarray [${left}…${right}]: [${arr.slice(left, right+1).join(', ')}].`);
     }
     mergeSteps(a, 0, a.length - 1);
     addStep(a, [], [], [], [], [...sortedFinal], 18, '✅ Array is fully sorted!');
@@ -273,7 +284,7 @@ function generateSteps(arr, algoId) {
       [arr[i+1], arr[high]] = [arr[high], arr[i+1]];
       const pi = i + 1;
       sortedSet.add(pi);
-      addStep(arr, [], [], [], pi, [...sortedSet], 16, `Pivot ${arr[pi]} placed at index ${pi}. Left: [${low}…${pi-1}], Right: [${pi+1}…${high}].`);
+      addStep(arr, [], [], [], pi, [...sortedSet], 17, `Pivot ${arr[pi]} placed at index ${pi}. Left: [${low}…${pi-1}], Right: [${pi+1}…${high}].`);
       quickSteps(arr, low, pi - 1);
       quickSteps(arr, pi + 1, high);
     }
@@ -340,6 +351,7 @@ function renderBars(state) {
     else if (state.swapping.includes(idx)) bar.classList.add('swapping');
     else if (state.comparing.includes(idx)) bar.classList.add('comparing');
     else if (state.sorted.includes(idx)) bar.classList.add('sorted');
+    else if (state.highlights && state.highlights.includes(idx)) bar.classList.add('highlight');
 
     if (showLabels) {
       const label = document.createElement('span');
@@ -487,7 +499,9 @@ function escapeHtml(str) {
 }
 
 // ── Init ───────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// (exported for unit tests under Node; the browser ignores this)
+if (typeof module !== 'undefined') module.exports = { generateSteps, CODE_LINES };
+if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
   array = Array.from({ length: arraySize }, () => Math.floor(Math.random() * 95) + 5);
   steps = generateSteps(array, ALGO_ID);
   renderCodeLines(ALGO_ID);

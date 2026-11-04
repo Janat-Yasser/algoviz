@@ -511,6 +511,7 @@ input[type="range"] {
 .bar.comparing { background: var(--yellow) !important; box-shadow: 0 0 12px rgba(245,158,11,0.5); }
 .bar.swapping { background: var(--red) !important; box-shadow: 0 0 12px rgba(239,68,68,0.5); }
 .bar.sorted { background: var(--green) !important; }
+.bar.highlight { background: #06b6d4 !important; }
 .bar.pivot { background: var(--purple) !important; box-shadow: 0 0 12px rgba(139,92,246,0.5); }
 .bar.min { background: #06b6d4 !important; }
 .bar.current { background: var(--pink) !important; }

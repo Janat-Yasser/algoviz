@@ -83,6 +83,20 @@ class BST {
     return node;
   }
 
+  // Deep copy, so an operation can be "previewed" without touching the visible tree.
+  clone() {
+    const copy = (n) => {
+      if (!n) return null;
+      const m = new BSTNode(n.val);
+      m.left = copy(n.left);
+      m.right = copy(n.right);
+      return m;
+    };
+    const t = new BST();
+    t.root = copy(this.root);
+    return t;
+  }
+
   height(node = this.root) {
     if (!node) return 0;
     return 1 + Math.max(this.height(node.left), this.height(node.right));
@@ -119,6 +133,8 @@ class BST {
 }
 
 // ── Layout ─────────────────────────────────────
+function treeHeight(n) { return n ? 1 + Math.max(treeHeight(n.left), treeHeight(n.right)) : 0; }
+
 function computeLayout(root) {
   if (!root) return;
   let counter = 0;
@@ -131,10 +147,16 @@ function computeLayout(root) {
   assignX(root);
 
   const svgEl = document.getElementById('treeSvg');
-  const W = svgEl ? svgEl.getBoundingClientRect().width || 900 : 900;
+  const box = svgEl && svgEl.parentElement ? (svgEl.parentElement.clientWidth - 32) || 900 : 900; // minus padding
   const total = counter;
-  const xStep = Math.min(60, W / (total + 1));
+  const MIN_STEP = 48;                       // node diameter (44) + a little air
+  const xStep = Math.max(MIN_STEP, Math.min(60, box / (total + 1)));
   const yStep = 70;
+  // If the tree is wider/taller than the box, enlarge the SVG (its container scrolls)
+  // instead of letting nodes overlap.
+  const W = Math.max(box, xStep * total + 40);
+  const H = Math.max(500, 40 + (root ? treeHeight(root) : 1) * yStep + 20);
+  if (svgEl) { svgEl.setAttribute('width', W); svgEl.setAttribute('height', H); }
   const startX = (W - xStep * total) / 2;
 
   function assignPos(node, depth) {
@@ -350,14 +372,25 @@ const CODE_LINE_MAP = {
   replaceWith: { delete: 12 }
 };
 
-async function animateSteps(steps, op) {
+let animToken = 0;
+
+// Plays the steps on the CURRENT tree, then swaps in the changed tree at the moment
+// the change happens (the insert/delete step), so the animation tells the truth.
+async function animateSteps(steps, op, nextTree = null) {
   if (isAnimating) return;
   isAnimating = true;
+  const myToken = ++animToken;
+  let committed = false;
+  const commit = () => { if (nextTree && !committed) { bst.root = nextTree.root; committed = true; } };
   renderBSTCode(op);
   document.getElementById('bstSteps').textContent = steps.length;
 
   for (let i = 0; i < steps.length; i++) {
+    if (myToken !== animToken) return; // cancelled (e.g. Clear)
     const step = steps[i];
+    // The tree visibly changes on the step where the node is inserted, or after the
+    // delete/replace has been explained.
+    if (step.type === 'insert') commit();
     const codeLine = CODE_LINE_MAP[step.type]?.[op] ?? -1;
 
     // Highlight code
@@ -378,7 +411,13 @@ async function animateSteps(steps, op) {
     }
     document.getElementById('bstStatus').textContent = `Step ${i + 1} / ${steps.length}`;
     await new Promise(res => setTimeout(res, 420));
+    if (step.type === 'delete' || step.type === 'replaceWith') {
+      // show the result of the delete straight after its explanation
+      if (steps.slice(i + 1).every(s => s.type !== 'goLeft' && s.type !== 'goRight')) commit();
+    }
   }
+  if (myToken !== animToken) return;
+  commit();
 
   renderTree(steps[steps.length - 1]?.path || [], steps[steps.length - 1]?.type || '');
   updateStats();
@@ -390,15 +429,18 @@ function bstInsert() {
   const inp = document.getElementById('bstInput');
   const val = parseInt(inp.value);
   if (isNaN(val) || val < 1 || val > 999) return;
+  if (isAnimating) return;
   inp.value = '';
-  const steps = bst.insert(val);
-  animateSteps(steps, 'insert');
+  const next = bst.clone();
+  const steps = next.insert(val);
+  animateSteps(steps, 'insert', next);
 }
 
 function bstSearch() {
   const inp = document.getElementById('bstSearchInput');
   const val = parseInt(inp.value);
   if (isNaN(val)) return;
+  if (isAnimating) return;
   inp.value = '';
   const steps = bst.search(val);
   animateSteps(steps, 'search');
@@ -408,12 +450,20 @@ function bstDelete() {
   const inp = document.getElementById('bstDeleteInput');
   const val = parseInt(inp.value);
   if (isNaN(val)) return;
+  if (isAnimating) return;
   inp.value = '';
-  const steps = bst.delete(val);
-  animateSteps(steps, 'delete');
+  const next = bst.clone();
+  const steps = next.delete(val);
+  animateSteps(steps, 'delete', next);
+}
+
+function stopAnimation() {
+  animToken++;
+  isAnimating = false;
 }
 
 function bstRandom() {
+  stopAnimation();
   bst.root = null;
   const count = 10 + Math.floor(Math.random() * 5);
   const used = new Set();
@@ -430,6 +480,7 @@ function bstRandom() {
 }
 
 function bstClear() {
+  stopAnimation();
   bst.root = null;
   renderTree();
   updateStats();
@@ -455,12 +506,10 @@ function bstTraverse(type) {
   document.getElementById('bstExplanationText').innerHTML = descs[type];
 }
 
-// ── Keyboard shortcuts ─────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-});
+// (exported for unit tests under Node; the browser ignores this)
+if (typeof module !== 'undefined') module.exports = { BST, BSTNode };
 
-document.addEventListener('DOMContentLoaded', () => {
+if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
   renderTree();
   renderBSTCode('insert');
   updateStats();
