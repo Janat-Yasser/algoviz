@@ -1,0 +1,45 @@
+<section class="race">
+  <h1>Sorting race</h1>
+  <p>Same numbers, every algorithm at once, one comparison or swap per tick each. Try nearly sorted input and watch insertion sort beat quick sort.</p>
+
+  <div class="race-setup">
+    <div class="control-group">
+      <span>Racers</span>
+      <div class="racer-picks" id="racerPicks">
+        <% algorithms.forEach(a => { %>
+          <label class="racer-pick"><input type="checkbox" value="<%= a.id %>" data-name="<%= a.name %>" data-o="<%= a.complexity.time.average %>" data-color="<%= a.color %>"<%= picked.includes(a.id) ? ' checked' : '' %>> <%= a.name %></label>
+        <% }) %>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="raceInput">Input</label>
+      <select id="raceInput" class="input-select">
+        <option value="random">Random</option>
+        <option value="nearly">Nearly sorted</option>
+        <option value="reversed">Reversed</option>
+        <option value="few">Few distinct values</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label for="raceSize">Size</label>
+      <select id="raceSize" class="input-select">
+        <option>20</option><option selected>40</option><option>80</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label for="raceSpeed">Speed <span id="raceSpeedVal">6</span></label>
+      <input type="range" id="raceSpeed" min="1" max="10" value="6">
+    </div>
+    <div class="controls-left">
+      <button class="btn-control btn-play" id="raceGo">Start race</button>
+      <button class="btn-control" id="raceNew">New numbers</button>
+      <button class="btn-control" data-sound-toggle aria-pressed="false">Sound off</button>
+    </div>
+  </div>
+
+  <div class="lanes" id="lanes"></div>
+</section>
+
+<script src="/js/sound.js"></script>
+<script src="/js/algorithms/sorting.js"></script>
+<script src="/js/race.js"></script>

@@ -180,9 +180,9 @@ function renderTree(highlightPath = [], highlightType = '') {
     text.setAttribute('x', '50%');
     text.setAttribute('y', '50%');
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', '#5a5a7a');
+    text.setAttribute('fill', '#8592AB');
     text.setAttribute('font-size', '14');
-    text.textContent = 'Tree is empty — insert a value to begin';
+    text.textContent = 'Empty tree. Insert a value, or press Random tree.';
     svg.appendChild(text);
     return;
   }
@@ -201,7 +201,7 @@ function renderTree(highlightPath = [], highlightType = '') {
       line.setAttribute('y2', node.left.y);
       line.setAttribute('class', 'tree-edge');
       const isHighlighted = highlightPath.includes(node.val) && highlightPath.includes(node.left.val);
-      if (isHighlighted) line.setAttribute('stroke', '#6366f1');
+      if (isHighlighted) { line.setAttribute('stroke', '#2E6BFF'); line.setAttribute('stroke-width', '3'); }
       svg.appendChild(line);
       drawEdges(node.left);
     }
@@ -213,7 +213,7 @@ function renderTree(highlightPath = [], highlightType = '') {
       line.setAttribute('y2', node.right.y);
       line.setAttribute('class', 'tree-edge');
       const isHighlighted = highlightPath.includes(node.val) && highlightPath.includes(node.right.val);
-      if (isHighlighted) line.setAttribute('stroke', '#6366f1');
+      if (isHighlighted) { line.setAttribute('stroke', '#2E6BFF'); line.setAttribute('stroke-width', '3'); }
       svg.appendChild(line);
       drawEdges(node.right);
     }
@@ -233,29 +233,29 @@ function renderTree(highlightPath = [], highlightType = '') {
     const isLast = highlightPath[highlightPath.length - 1] === node.val;
 
     if (isLast && highlightType === 'found') {
-      circle.setAttribute('fill', 'rgba(16,185,129,0.35)');
-      circle.setAttribute('stroke', '#10b981');
+      circle.setAttribute('fill', '#86E6A8');
+      circle.setAttribute('stroke', '#15233F');
     } else if (isLast && highlightType === 'notFound') {
-      circle.setAttribute('fill', 'rgba(239,68,68,0.25)');
-      circle.setAttribute('stroke', '#ef4444');
+      circle.setAttribute('fill', '#FF8AC0');
+      circle.setAttribute('stroke', '#15233F');
     } else if (isLast && (highlightType === 'insert' || highlightType === 'delete')) {
-      circle.setAttribute('fill', 'rgba(99,102,241,0.4)');
-      circle.setAttribute('stroke', '#6366f1');
+      circle.setAttribute('fill', '#2E6BFF');
+      circle.setAttribute('stroke', '#2E6BFF');
     } else if (isInPath) {
-      circle.setAttribute('fill', 'rgba(245,158,11,0.25)');
-      circle.setAttribute('stroke', '#f59e0b');
+      circle.setAttribute('fill', '#FFE45E');
+      circle.setAttribute('stroke', '#15233F');
     } else {
-      circle.setAttribute('fill', '#22222f');
-      circle.setAttribute('stroke', '#3a3a5c');
+      circle.setAttribute('fill', '#FFFFFF');
+      circle.setAttribute('stroke', '#15233F');
     }
     circle.setAttribute('stroke-width', '2');
 
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dy', '5');
-    text.setAttribute('fill', 'white');
+    text.setAttribute('fill', isLast && (highlightType === 'insert' || highlightType === 'delete') ? '#FFFFFF' : '#15233F');
     text.setAttribute('font-size', node.val >= 100 ? '10' : '13');
-    text.setAttribute('font-family', 'JetBrains Mono, monospace');
+    text.setAttribute('font-family', 'IBM Plex Mono, monospace');
     text.setAttribute('font-weight', '600');
     text.textContent = node.val;
 
@@ -355,10 +355,10 @@ function updateStats() {
 const EXPLANATIONS = {
   goLeft: (s) => `Node ${s.cur}: ${s.val} < ${s.cur}, so go <strong>left</strong>.`,
   goRight: (s) => `Node ${s.cur}: ${s.val} > ${s.cur}, so go <strong>right</strong>.`,
-  insert: (s) => `✅ Inserted <strong>${s.val}</strong> into the tree.`,
-  found: (s) => `✅ Found <strong>${s.val}</strong> in the tree after ${s.path.length} step(s).`,
-  notFound: (s) => `❌ <strong>${s.val}</strong> not found in the tree.`,
-  delete: (s) => `🗑 Deleting node <strong>${s.val}</strong>...`,
+  insert: (s) => `Inserted <strong>${s.val}</strong> into the tree.`,
+  found: (s) => `Found <strong>${s.val}</strong> in the tree after ${s.path.length} step(s).`,
+  notFound: (s) => `<strong>${s.val}</strong> isn't in the tree: the search fell off a leaf.`,
+  delete: (s) => `Deleting node <strong>${s.val}</strong>...`,
   replaceWith: (s) => `Replacing deleted node with in-order successor <strong>${s.val}</strong>.`
 };
 

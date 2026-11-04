@@ -12,6 +12,26 @@ let speed = 5;
 let arraySize = 30;
 let stats = { comparisons: 0, swaps: 0, accesses: 0 };
 let startTime = null;
+let inputKind = 'random';
+
+// ── Inputs ─────────────────────────────────────
+// The same algorithm behaves very differently on different inputs: bubble and
+// insertion sort fly through nearly-sorted data, quick sort (last-element pivot)
+// degrades on already-ordered data.
+function makeInput(kind, n, rnd = Math.random) {
+  const v = () => Math.floor(rnd() * 95) + 5;
+  if (kind === 'nearly') {
+    const a = Array.from({ length: n }, (_, i) => Math.round(5 + (i / Math.max(1, n - 1)) * 94));
+    for (let k = 0; k < Math.max(1, Math.floor(n / 10)); k++) {
+      const i = Math.floor(rnd() * (n - 1));
+      [a[i], a[i + 1]] = [a[i + 1], a[i]];
+    }
+    return a;
+  }
+  if (kind === 'reversed') return Array.from({ length: n }, (_, i) => Math.round(99 - (i / Math.max(1, n - 1)) * 94));
+  if (kind === 'few') { const vals = [20, 45, 70, 95]; return Array.from({ length: n }, () => vals[Math.floor(rnd() * 4)]); }
+  return Array.from({ length: n }, v);
+}
 
 // ── Code definitions per algorithm ────────────
 const CODE_LINES = {
@@ -177,7 +197,7 @@ function generateSteps(arr, algoId) {
       }
     }
     for (let k = 0; k < n; k++) sortedSet.add(k);
-    addStep(a, [], [], [], [], [...sortedSet], 12, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...sortedSet], 12, 'Done: every element is in its final place.');
   }
 
   else if (algoId === 'selection') {
@@ -202,7 +222,7 @@ function generateSteps(arr, algoId) {
       sortedSet.add(i);
     }
     sortedSet.add(n - 1);
-    addStep(a, [], [], [], [], [...sortedSet], 15, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...sortedSet], 15, 'Done: every element is in its final place.');
   }
 
   else if (algoId === 'insertion') {
@@ -220,11 +240,12 @@ function generateSteps(arr, algoId) {
         j--;
         addStep(a, [], [], [j+1, j+2], [], [...sortedSet], 6, `Shifted arr[${j+2}] = ${a[j+2]}.`);
       }
+      if (j >= 0) addStep(a, [], [j, j+1], [], [], [...sortedSet], 5, `arr[${j}]=${a[j]} is not bigger than key=${key}, so the key goes right after it.`);
       a[j+1] = key;
       sortedSet.add(i);
       addStep(a, [], [], [], [], [...sortedSet], 9, `Inserted key=${key} at position ${j+1}. Sorted portion grows to index ${i}.`);
     }
-    addStep(a, [], [], [], [], [...sortedSet], 11, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...sortedSet], 11, 'Done: every element is in its final place.');
   }
 
   else if (algoId === 'merge') {
@@ -261,7 +282,7 @@ function generateSteps(arr, algoId) {
       addStep(arr, merged, [], [], [], [...sortedFinal], 18, `Merged subarray [${left}…${right}]: [${arr.slice(left, right+1).join(', ')}].`);
     }
     mergeSteps(a, 0, a.length - 1);
-    addStep(a, [], [], [], [], [...sortedFinal], 18, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...sortedFinal], 18, 'Done: every element is in its final place.');
   }
 
   else if (algoId === 'quick') {
@@ -290,7 +311,7 @@ function generateSteps(arr, algoId) {
     }
     quickSteps(a, 0, a.length - 1);
     const allSorted = new Set(Array.from({length: a.length}, (_, i) => i));
-    addStep(a, [], [], [], [], [...allSorted], 6, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...allSorted], 6, 'Done: every element is in its final place.');
   }
 
   else if (algoId === 'heap') {
@@ -328,19 +349,19 @@ function generateSteps(arr, algoId) {
       heapifySteps(a, i, 0);
     }
     sortedSet.add(0);
-    addStep(a, [], [], [], [], [...sortedSet], 8, '✅ Array is fully sorted!');
+    addStep(a, [], [], [], [], [...sortedSet], 8, 'Done: every element is in its final place.');
   }
 
   return steps;
 }
 
 // ── Render functions ───────────────────────────
-function renderBars(state) {
-  const container = document.getElementById('barsContainer');
+function renderBars(state, container = document.getElementById('barsContainer')) {
   if (!container) return;
   container.innerHTML = '';
+  container.classList.toggle('dense', state.arr.length > 45);
   const maxVal = Math.max(...state.arr);
-  const showLabels = state.arr.length <= 20;
+  const showLabels = state.arr.length <= 20 && !container.dataset.nolabels;
 
   state.arr.forEach((val, idx) => {
     const bar = document.createElement('div');
@@ -387,6 +408,12 @@ function applyStep(step) {
   renderBars(step);
   highlightCodeLine(step.codeLine);
 
+  if (typeof Sound !== 'undefined' && Sound.on) {
+    const max = Math.max(...step.arr);
+    step.comparing.forEach((i) => Sound.compare(step.arr[i], max));
+    step.swapping.forEach((i) => Sound.swap(step.arr[i], max));
+  }
+
   // Update stats
   if (step.comparing.length) stats.comparisons++;
   if (step.swapping.length) stats.swaps++;
@@ -403,9 +430,9 @@ function applyStep(step) {
   if (expEl && step.explanation) expEl.innerHTML = step.explanation;
 
   const statusEl = document.getElementById('statusPill');
-  if (step.explanation && step.explanation.includes('✅')) {
-    statusEl.textContent = '✅ Sorted!';
-    statusEl.style.color = '#34d399';
+  if (stepIndex >= steps.length - 1) {
+    statusEl.textContent = 'Sorted';
+    statusEl.classList.add('done');
   } else {
     statusEl.textContent = `Step ${stepIndex} / ${steps.length}`;
   }
@@ -427,9 +454,21 @@ function startSort() {
       stepIndex++;
     } else {
       pauseSort();
-      document.getElementById('statusPill').textContent = '✅ Done!';
+      finishSweep(steps[steps.length - 1]);
     }
   }, getDelay());
+}
+
+// The victory lap: walk the sorted bars left to right, rising in pitch
+function finishSweep(state, container = document.getElementById('barsContainer')) {
+  if (!state || !container || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const bars = [...container.children];
+  const max = Math.max(...state.arr);
+  bars.forEach((b) => b.classList.remove('sorted'));
+  bars.forEach((b, i) => setTimeout(() => {
+    b.classList.add('sorted');
+    if (typeof Sound !== 'undefined' && Sound.on) Sound.sweepNote(state.arr[i], max);
+  }, i * Math.max(6, 600 / bars.length)));
 }
 
 function pauseSort() {
@@ -458,7 +497,7 @@ function resetSort() {
   document.getElementById('statAccesses').textContent = '0';
   document.getElementById('statTime').textContent = '0ms';
   document.getElementById('statusPill').textContent = 'Ready';
-  document.getElementById('statusPill').style.color = '';
+  document.getElementById('statusPill').classList.remove('done');
   document.getElementById('explanationText').innerHTML = 'Press <strong>Play</strong> or <strong>Step</strong> to start.';
   document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active', 'highlight'));
   renderBars(steps[0] || { arr: array, comparing: [], swapping: [], sorted: [], pivot: -1 });
@@ -466,7 +505,7 @@ function resetSort() {
 
 function shuffleArray() {
   pauseSort();
-  array = Array.from({ length: arraySize }, () => Math.floor(Math.random() * 95) + 5);
+  array = makeInput(inputKind, arraySize);
   steps = generateSteps(array, ALGO_ID);
   stepIndex = 0;
   stats = { comparisons: 0, swaps: 0, accesses: 0 };
@@ -476,7 +515,7 @@ function shuffleArray() {
   document.getElementById('statAccesses').textContent = '0';
   document.getElementById('statTime').textContent = '0ms';
   document.getElementById('statusPill').textContent = 'Ready';
-  document.getElementById('statusPill').style.color = '';
+  document.getElementById('statusPill').classList.remove('done');
   document.getElementById('explanationText').innerHTML = 'Press <strong>Play</strong> or <strong>Step</strong> to start.';
   document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active', 'highlight'));
   renderBars({ arr: array, comparing: [], swapping: [], sorted: [], pivot: -1 });
@@ -485,6 +524,11 @@ function shuffleArray() {
 function updateSize(val) {
   arraySize = parseInt(val);
   document.getElementById('sizeVal').textContent = val;
+  shuffleArray();
+}
+
+function updateInput(kind) {
+  inputKind = kind;
   shuffleArray();
 }
 
@@ -500,9 +544,10 @@ function escapeHtml(str) {
 
 // ── Init ───────────────────────────────────────
 // (exported for unit tests under Node; the browser ignores this)
-if (typeof module !== 'undefined') module.exports = { generateSteps, CODE_LINES };
+if (typeof module !== 'undefined') module.exports = { generateSteps, CODE_LINES, makeInput };
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
-  array = Array.from({ length: arraySize }, () => Math.floor(Math.random() * 95) + 5);
+  if (typeof ALGO_ID === 'undefined' || !document.getElementById('btnPlay')) return; // used as a library (home, race)
+  array = makeInput(inputKind, arraySize);
   steps = generateSteps(array, ALGO_ID);
   renderCodeLines(ALGO_ID);
   renderBars({ arr: array, comparing: [], swapping: [], sorted: [], pivot: -1 });

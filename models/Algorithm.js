@@ -10,7 +10,7 @@ const algorithms = {
       description: 'Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. The largest elements "bubble up" to the end.',
       useCases: 'Educational purposes, nearly sorted data',
       emoji: '🫧',
-      color: '#6366f1',
+      color: '#2E6BFF',
       code: `function bubbleSort(arr) {
   const n = arr.length;
   for (let i = 0; i < n - 1; i++) {       // outer loop
@@ -35,7 +35,7 @@ const algorithms = {
       description: 'Finds the minimum element from the unsorted portion and places it at the beginning. Divides the array into a sorted and unsorted region.',
       useCases: 'Small datasets, when memory writes are costly',
       emoji: '🎯',
-      color: '#ec4899',
+      color: '#E0418B',
       code: `function selectionSort(arr) {
   const n = arr.length;
   for (let i = 0; i < n - 1; i++) {    // outer loop
@@ -63,7 +63,7 @@ const algorithms = {
       description: 'Builds the final sorted array one item at a time by inserting each element into its correct position. Works like sorting playing cards in your hand.',
       useCases: 'Small datasets, nearly sorted arrays, online algorithms',
       emoji: '🃏',
-      color: '#f59e0b',
+      color: '#F08A24',
       code: `function insertionSort(arr) {
   const n = arr.length;
   for (let i = 1; i < n; i++) {        // start from 1
@@ -87,7 +87,7 @@ const algorithms = {
       description: 'Divide and conquer algorithm that splits the array in half, recursively sorts both halves, then merges them back together.',
       useCases: 'Large datasets, linked lists, external sorting',
       emoji: '🔀',
-      color: '#10b981',
+      color: '#16A066',
       code: `function mergeSort(arr) {
   if (arr.length <= 1) return arr;      // base case
   
@@ -125,7 +125,7 @@ function merge(left, right) {
       description: 'Picks a pivot element and partitions the array into elements less than and greater than the pivot, then recursively sorts each partition.',
       useCases: 'General purpose, in-place sorting, cache-friendly',
       emoji: '⚡',
-      color: '#ef4444',
+      color: '#E5484D',
       code: `function quickSort(arr, low=0, high=arr.length-1) {
   if (low < high) {
     let pi = partition(arr, low, high); // pivot index
@@ -159,7 +159,7 @@ function partition(arr, low, high) {
       description: 'Builds a max-heap from the data, then repeatedly extracts the maximum element to build the sorted array.',
       useCases: 'Guaranteed O(n log n), in-place, priority queues',
       emoji: '🏔️',
-      color: '#8b5cf6',
+      color: '#7B5CE6',
       code: `function heapSort(arr) {
   const n = arr.length;
   // Build max heap
@@ -195,21 +195,21 @@ function heapify(arr, n, i) {
       id: 'dijkstra',
       name: "Dijkstra's",
       category: 'pathfinding',
-      complexity: { time: { best: 'O(V²)', average: 'O(V²)', worst: 'O(V²)' }, space: 'O(V)' },
+      complexity: { time: { best: 'O((V+E) log V)', average: 'O((V+E) log V)', worst: 'O((V+E) log V)' }, space: 'O(V)' },
       description: "Finds the shortest path from a source to all vertices in a weighted graph. Guaranteed to find the optimal path.",
       useCases: 'GPS navigation, network routing, weighted graphs',
       emoji: '🗺️',
-      color: '#6366f1'
+      color: '#2E6BFF'
     },
     {
       id: 'astar',
       name: 'A* Search',
       category: 'pathfinding',
-      complexity: { time: { best: 'O(E)', average: 'O(E)', worst: 'O(V²)' }, space: 'O(V)' },
+      complexity: { time: { best: 'O(E)', average: 'O((V+E) log V)', worst: 'O((V+E) log V)' }, space: 'O(V)' },
       description: "Uses heuristics to guide search toward the goal. More efficient than Dijkstra's for finding a single target path.",
       useCases: 'Game AI, robotics, puzzle solving',
       emoji: '⭐',
-      color: '#f59e0b'
+      color: '#F08A24'
     },
     {
       id: 'bfs',
@@ -219,7 +219,7 @@ function heapify(arr, n, i) {
       description: 'Explores all neighbors at the current depth before moving to nodes at the next depth level. Finds shortest path in unweighted graphs.',
       useCases: 'Unweighted shortest path, social networks, web crawling',
       emoji: '🌊',
-      color: '#10b981'
+      color: '#16A066'
     },
     {
       id: 'dfs',
@@ -229,7 +229,7 @@ function heapify(arr, n, i) {
       description: 'Explores as far as possible along each branch before backtracking. Does not guarantee shortest path.',
       useCases: 'Maze generation, topological sort, cycle detection',
       emoji: '🕳️',
-      color: '#ec4899'
+      color: '#E0418B'
     }
   ],
   trees: [
@@ -241,7 +241,7 @@ function heapify(arr, n, i) {
       description: 'A binary tree where each node\'s left subtree contains only nodes with keys less than the node\'s key, and right subtree only greater keys.',
       useCases: 'Ordered data, range queries, dynamic sets',
       emoji: '🌳',
-      color: '#10b981'
+      color: '#16A066'
     }
   ]
 };

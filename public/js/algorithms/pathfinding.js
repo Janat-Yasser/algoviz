@@ -256,13 +256,31 @@ async function runPathfinding() {
       if (el) { el.classList.remove('visited', 'frontier'); el.classList.add('path'); }
       await new Promise(res => setTimeout(res, 30));
     }
-    document.getElementById('pfStatus').textContent = `✅ Path found! Length: ${result.path.length}`;
-    explain(`✅ Path found! Explored ${result.visited} cells, path length = ${result.path.length}.`);
+    document.getElementById('pfStatus').textContent = `Path found, ${result.path.length} squares long`;
+    explain(`Found a path of ${result.path.length} squares after exploring ${result.visited} cells. Press <strong>Compare all four</strong> to see how the others do on this same grid.`);
   } else {
-    document.getElementById('pfStatus').textContent = '❌ No path found!';
-    explain('❌ No path found — the destination is walled off.');
+    document.getElementById('pfStatus').textContent = 'No path';
+    explain('No path: the end is walled off. Every reachable cell was explored to prove it.');
   }
   running = false;
+}
+
+// Run all four searches on the current grid (instantly, no animation) and tabulate them
+const NAMES = { bfs: 'BFS', dfs: 'DFS', dijkstra: "Dijkstra's", astar: 'A*' };
+function compareAll() {
+  const rows = Object.keys(NAMES).map((id) => ({ id, ...computeSearch(id, walls, startCell, endCell) }));
+  const best = Math.min(...rows.filter((r) => r.found).map((r) => r.path.length));
+  const fewest = Math.min(...rows.map((r) => r.visited));
+  const el = document.getElementById('pfCompare');
+  if (!el) return;
+  el.hidden = false;
+  el.querySelector('tbody').innerHTML = rows.map((r) => `
+    <tr${r.id === PF_ALGO ? ' class="current"' : ''}>
+      <td>${NAMES[r.id]}</td>
+      <td class="${r.visited === fewest ? 'o-good' : ''}">${r.visited}</td>
+      <td>${r.found ? r.path.length : 'none'}</td>
+      <td>${!r.found ? 'no path' : r.path.length === best ? 'yes' : `no, ${r.path.length - best} longer`}</td>
+    </tr>`).join('');
 }
 
 function clearPathVisuals() {
@@ -284,7 +302,8 @@ function clearGrid() {
   document.getElementById('pfVisited').textContent = '0';
   document.getElementById('pfPath').textContent = '0';
   document.getElementById('pfStatus').textContent = 'Draw walls, then Visualize';
-  explain('Grid cleared. Click to draw walls, then press Visualize.');
+  explain('Grid cleared. Drag to draw walls, then press <strong>Visualize</strong>.');
+  const t = document.getElementById('pfCompare'); if (t) t.hidden = true;
 }
 
 function generateMaze() {
@@ -295,7 +314,7 @@ function generateMaze() {
     for (let c = 0; c < COLS; c++)
       if (Math.random() < 0.3 && !isStartOrEnd(r, c)) walls[r][c] = true;
   renderGrid();
-  explain('Random maze generated! Press Visualize to find the path.');
+  explain('Random walls placed. Press <strong>Visualize</strong>, or <strong>Compare all four</strong> to race them on this grid.');
 }
 
 function updatePfSpeed(val) {

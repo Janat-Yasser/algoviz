@@ -1,41 +1,30 @@
 <div class="viz-page">
   <aside class="viz-sidebar">
     <div class="sidebar-head">
-      <a href="/" class="back-link">← Home</a>
+      <a href="/" class="back-link">Home</a>
       <h3>Trees</h3>
     </div>
-    <div class="complexity-panel">
-      <h4>Complexity</h4>
-      <div class="complexity-grid">
-        <div class="c-item"><span class="c-label">Search</span><span class="c-val c-good">O(log n)</span></div>
-        <div class="c-item"><span class="c-label">Insert</span><span class="c-val c-good">O(log n)</span></div>
-        <div class="c-item"><span class="c-label">Delete</span><span class="c-val c-good">O(log n)</span></div>
-        <div class="c-item"><span class="c-label">Space</span><span class="c-val c-ok">O(n)</span></div>
-      </div>
-      <p class="complexity-note">*Worst case O(n) for skewed trees</p>
-    </div>
 
-    <!-- BST Controls -->
     <div class="bst-controls">
-      <h4>Operations</h4>
+      <h4>Change the tree</h4>
       <div class="bst-input-group">
-        <input type="number" id="bstInput" placeholder="Enter value (1-99)" min="1" max="99">
+        <input type="number" id="bstInput" placeholder="1 to 99" min="1" max="99" aria-label="Value to insert">
         <button class="btn-control btn-play" onclick="bstInsert()">Insert</button>
       </div>
       <div class="bst-input-group">
-        <input type="number" id="bstSearchInput" placeholder="Search value" min="1" max="99">
-        <button class="btn-control btn-step" onclick="bstSearch()">Search</button>
+        <input type="number" id="bstSearchInput" placeholder="Value" min="1" max="99" aria-label="Value to search for">
+        <button class="btn-control" onclick="bstSearch()">Search</button>
       </div>
       <div class="bst-input-group">
-        <input type="number" id="bstDeleteInput" placeholder="Delete value" min="1" max="99">
-        <button class="btn-control btn-reset" onclick="bstDelete()">Delete</button>
+        <input type="number" id="bstDeleteInput" placeholder="Value" min="1" max="99" aria-label="Value to delete">
+        <button class="btn-control" onclick="bstDelete()">Delete</button>
       </div>
-      <button class="btn-control btn-shuffle full-width" onclick="bstRandom()" style="margin-top:8px">🎲 Random Tree</button>
-      <button class="btn-control btn-reset full-width" onclick="bstClear()" style="margin-top:6px">↺ Clear Tree</button>
+      <button class="btn-control full-width" onclick="bstRandom()" style="margin-top:8px">Random tree</button>
+      <button class="btn-control full-width" onclick="bstClear()" style="margin-top:8px">Clear</button>
     </div>
 
     <div class="traversal-panel">
-      <h4>Traversal</h4>
+      <h4>Walk the tree</h4>
       <div class="traversal-btns">
         <button class="trav-btn" onclick="bstTraverse('inorder')">Inorder</button>
         <button class="trav-btn" onclick="bstTraverse('preorder')">Preorder</button>
@@ -44,24 +33,28 @@
       <div class="traversal-result" id="traversalResult"></div>
     </div>
 
-    <div class="use-cases-panel">
-      <h4>BST Properties</h4>
-      <p>Left child &lt; Parent &lt; Right child. Inorder traversal yields sorted sequence.</p>
+    <div class="complexity-panel">
+      <h4>Complexity</h4>
+      <div class="complexity-grid">
+        <div class="c-item"><span class="c-label">Search</span><span class="c-val c-good">O(log n)</span></div>
+        <div class="c-item"><span class="c-label">Insert</span><span class="c-val c-good">O(log n)</span></div>
+        <div class="c-item"><span class="c-label">Delete</span><span class="c-val c-good">O(log n)</span></div>
+        <div class="c-item"><span class="c-label">Space</span><span class="c-val c-ok">O(n)</span></div>
+      </div>
+      <p class="complexity-note">Those are for a balanced tree. Insert 1, 2, 3, 4, 5 in order and it turns into a linked list: O(n).</p>
     </div>
   </aside>
 
   <div class="viz-main">
     <div class="viz-header">
-      <div>
-        <h1 class="viz-title" style="color:#10b981">🌳 Binary Search Tree</h1>
-        <p class="viz-desc">Insert, search, and delete nodes. Watch the tree restructure with animated traversals.</p>
-      </div>
+      <h1 class="viz-title">Binary search tree</h1>
+      <p class="viz-desc">Everything smaller goes left, everything bigger goes right. Insert, search and delete, and watch the path each one takes.</p>
     </div>
 
     <div class="stats-bar">
-      <div class="stat-pill">Nodes: <strong id="bstNodeCount">0</strong></div>
-      <div class="stat-pill">Height: <strong id="bstHeight">0</strong></div>
-      <div class="stat-pill">Steps: <strong id="bstSteps">0</strong></div>
+      <div class="stat-pill">Nodes <strong id="bstNodeCount">0</strong></div>
+      <div class="stat-pill">Height <strong id="bstHeight">0</strong></div>
+      <div class="stat-pill">Steps <strong id="bstSteps">0</strong></div>
       <div class="stat-pill status-pill" id="bstStatus">Insert a value to begin</div>
     </div>
 
@@ -70,15 +63,13 @@
     </div>
 
     <div class="explanation-box" id="bstExplanation">
-      <div class="explanation-icon">💡</div>
-      <div id="bstExplanationText">Enter a number and press <strong>Insert</strong> to add it to the tree.</div>
+      <div id="bstExplanationText">Type a number and press <strong>Insert</strong>, or start from a random tree.</div>
     </div>
 
-    <!-- Code panel -->
     <div class="code-panel">
       <div class="code-panel-header">
-        <span class="code-panel-title">💻 BST Operations</span>
-        <span class="code-hint" id="bstCodeTitle">Insert algorithm</span>
+        <span class="code-panel-title">The operation, in JavaScript</span>
+        <span class="code-hint" id="bstCodeTitle">Insert</span>
       </div>
       <div class="code-body">
         <pre class="code-pre" id="bstCodeDisplay"><code id="bstCodeLines"></code></pre>

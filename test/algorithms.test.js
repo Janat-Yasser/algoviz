@@ -100,3 +100,22 @@ test('BST insert/delete keep the BST property; clone is independent', () => {
   assert.equal(c.search(30).at(-1).type, 'notFound');
   assert.equal(c.search(65).at(-1).type, 'found');
 });
+
+// ── Inputs used by the race and the input picker ──
+const { makeInput } = require('../public/js/algorithms/sorting');
+
+test('input presets have the right shape', () => {
+  assert.equal(makeInput('random', 25).length, 25);
+  const rev = makeInput('reversed', 20);
+  assert.ok(rev.every((v, i) => i === 0 || rev[i - 1] >= v));
+  assert.ok(new Set(makeInput('few', 50)).size <= 4);
+  const near = makeInput('nearly', 40);
+  const outOfOrder = near.filter((v, i) => i && near[i - 1] > v).length;
+  assert.ok(outOfOrder >= 1 && outOfOrder <= 4);
+});
+
+test('insertion sort shows the comparison that stops each shift (nearly sorted is ~n comparisons)', () => {
+  const steps = generateSteps([1, 2, 3, 5, 4, 6, 7, 8], 'insertion');
+  const comparisons = steps.filter((s) => s.comparing.length).length;
+  assert.equal(comparisons, 8); // 7 "stop here" checks + 1 shift
+});

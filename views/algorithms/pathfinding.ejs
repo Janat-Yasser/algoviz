@@ -1,15 +1,12 @@
 <div class="viz-page">
   <aside class="viz-sidebar">
     <div class="sidebar-head">
-      <a href="/" class="back-link">← Home</a>
+      <a href="/" class="back-link">Home</a>
       <h3>Pathfinding</h3>
     </div>
     <nav class="algo-nav">
       <% allAlgos.forEach(a => { %>
-        <a href="/pathfinding?algo=<%= a.id %>"
-           class="algo-nav-item <%= a.id === algo.id ? 'active' : '' %>"
-           style="--accent: <%= a.color %>">
-          <span><%= a.emoji %></span>
+        <a href="/pathfinding?algo=<%= a.id %>" class="algo-nav-item <%= a.id === algo.id ? 'active' : '' %>">
           <span><%= a.name %></span>
         </a>
       <% }) %>
@@ -19,59 +16,56 @@
       <h4>Complexity</h4>
       <div class="complexity-grid">
         <div class="c-item"><span class="c-label">Time</span><span class="c-val c-ok"><%= algo.complexity.time.average %></span></div>
-        <div class="c-item"><span class="c-label">Space</span><span class="c-val c-ok"><%= algo.complexity.space %></span></div>
+        <div class="c-item"><span class="c-label">Extra space</span><span class="c-val c-ok"><%= algo.complexity.space %></span></div>
       </div>
     </div>
 
     <div class="use-cases-panel">
-      <h4>Description</h4>
-      <p><%= algo.description %></p>
-      <h4 style="margin-top:12px">Use Cases</h4>
+      <h4>Good for</h4>
       <p><%= algo.useCases %></p>
     </div>
 
-    <!-- Grid legend -->
     <div class="grid-legend">
-      <h4>Grid Legend</h4>
-      <div class="gl-item"><span class="gl-dot" style="background:#10b981"></span>Start</div>
-      <div class="gl-item"><span class="gl-dot" style="background:#ef4444"></span>End</div>
-      <div class="gl-item"><span class="gl-dot" style="background:#1f2937"></span>Wall</div>
-      <div class="gl-item"><span class="gl-dot" style="background:#6366f1; opacity:.5"></span>Visited</div>
-      <div class="gl-item"><span class="gl-dot" style="background:#f59e0b"></span>Path</div>
+      <h4>On the grid</h4>
+      <div class="gl-item"><span class="gl-dot round" style="background:var(--hl-green)"></span>Start</div>
+      <div class="gl-item"><span class="gl-dot round" style="background:var(--hl-pink)"></span>End</div>
+      <div class="gl-item"><span class="gl-dot" style="background:var(--ink)"></span>Wall</div>
+      <div class="gl-item"><span class="gl-dot" style="background:var(--hl-yellow)"></span>Waiting to be explored</div>
+      <div class="gl-item"><span class="gl-dot" style="background:var(--visited)"></span>Explored</div>
+      <div class="gl-item"><span class="gl-dot" style="background:var(--hl-orange)"></span>Path found</div>
     </div>
   </aside>
 
   <div class="viz-main">
     <div class="viz-header">
-      <div>
-        <h1 class="viz-title" style="color:<%= algo.color %>"><%= algo.emoji %> <%= algo.name %></h1>
-        <p class="viz-desc"><%= algo.description %></p>
-      </div>
+      <h1 class="viz-title"><%= algo.name %></h1>
+      <p class="viz-desc"><%= algo.description %></p>
     </div>
 
     <div class="controls-bar">
       <div class="controls-left">
-        <button class="btn-control btn-play" onclick="runPathfinding()">▶ Visualize</button>
-        <button class="btn-control btn-reset" onclick="clearPath()">↺ Clear Path</button>
-        <button class="btn-control btn-shuffle" onclick="clearGrid()">🗑 Clear Grid</button>
-        <button class="btn-control btn-step" onclick="generateMaze()">🌀 Maze</button>
+        <button class="btn-control btn-play" onclick="runPathfinding()">Visualize</button>
+        <button class="btn-control" onclick="compareAll()">Compare all four</button>
+        <button class="btn-control" onclick="clearPath()">Clear path</button>
+        <button class="btn-control" onclick="clearGrid()">Clear walls</button>
+        <button class="btn-control" onclick="generateMaze()">Random walls</button>
       </div>
       <div class="controls-right">
         <div class="control-group">
-          <label>Speed <span id="pfSpeedVal">5</span></label>
+          <label for="pfSpeedSlider">Speed <span id="pfSpeedVal">5</span></label>
           <input type="range" id="pfSpeedSlider" min="1" max="10" value="5" oninput="updatePfSpeed(this.value)">
         </div>
-        <div class="mode-btns">
-          <button class="mode-btn active" id="modeWall" onclick="setMode('wall')">🧱 Wall</button>
-          <button class="mode-btn" id="modeStart" onclick="setMode('start')">🟢 Start</button>
-          <button class="mode-btn" id="modeEnd" onclick="setMode('end')">🔴 End</button>
+        <div class="mode-btns" role="group" aria-label="What a click draws">
+          <button class="mode-btn active" id="modeWall" onclick="setMode('wall')">Walls</button>
+          <button class="mode-btn" id="modeStart" onclick="setMode('start')">Move start</button>
+          <button class="mode-btn" id="modeEnd" onclick="setMode('end')">Move end</button>
         </div>
       </div>
     </div>
 
     <div class="stats-bar">
-      <div class="stat-pill">Visited: <strong id="pfVisited">0</strong></div>
-      <div class="stat-pill">Path Length: <strong id="pfPath">0</strong></div>
+      <div class="stat-pill">Explored <strong id="pfVisited">0</strong></div>
+      <div class="stat-pill">Path length <strong id="pfPath">0</strong></div>
       <div class="stat-pill status-pill" id="pfStatus">Draw walls, then Visualize</div>
     </div>
 
@@ -80,9 +74,13 @@
     </div>
 
     <div class="explanation-box" id="pfExplanation">
-      <div class="explanation-icon">💡</div>
-      <div id="pfExplanationText">Click to draw walls. Set start/end points, then press <strong>Visualize</strong>.</div>
+      <div id="pfExplanationText">Drag on the grid to draw walls. Move the start and end, then press <strong>Visualize</strong>.</div>
     </div>
+
+    <table class="sheet" id="pfCompare" hidden>
+      <thead><tr><th>Algorithm</th><th>Cells explored</th><th>Path length</th><th>Shortest?</th></tr></thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
 

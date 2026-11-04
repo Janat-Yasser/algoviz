@@ -1,142 +1,90 @@
-<div class="hero">
-  <div class="hero-bg">
-    <div class="hero-orb orb-1"></div>
-    <div class="hero-orb orb-2"></div>
-    <div class="hero-orb orb-3"></div>
-  </div>
-  <div class="hero-content">
-    <div class="hero-tag">✦ Interactive DSA Learning</div>
-    <h1 class="hero-title">
-      Understand Algorithms<br>
-      <span class="gradient-text">Visually.</span>
-    </h1>
-    <p class="hero-sub">
-      Watch every comparison, swap, and traversal animate step-by-step.
-      See the code highlight in real-time. Master Data Structures & Algorithms.
-    </p>
-    <div class="hero-actions">
-      <a href="/sorting/bubble" class="btn-primary">Start Visualizing →</a>
-      <a href="/sorting" class="btn-ghost">Browse Algorithms</a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat"><span class="stat-n">6</span><span>Sorting Algorithms</span></div>
-      <div class="stat-div"></div>
-      <div class="stat"><span class="stat-n">4</span><span>Pathfinding Algorithms</span></div>
-      <div class="stat-div"></div>
-      <div class="stat"><span class="stat-n">∞</span><span>Things to Learn</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- Sorting Section -->
-<section class="section">
-  <div class="section-header">
-    <div class="section-tag">📊 Sorting</div>
-    <h2 class="section-title">Sorting Algorithms</h2>
-    <p class="section-sub">From simple O(n²) to blazing O(n log n) — see exactly how each one works</p>
-  </div>
-  <div class="algo-grid">
-    <% sorting.forEach(algo => { %>
-      <a href="/sorting/<%= algo.id %>" class="algo-card" style="--accent: <%= algo.color %>">
-        <div class="algo-card-top">
-          <span class="algo-emoji"><%= algo.emoji %></span>
-          <div class="algo-complexity">
-            <span class="complexity-label">Avg</span>
-            <span class="complexity-val"><%= algo.complexity.time.average %></span>
-          </div>
-        </div>
-        <h3 class="algo-name"><%= algo.name %></h3>
-        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
-        <div class="algo-tags">
-          <span class="tag tag-space"><%= algo.complexity.space %> space</span>
-          <span class="tag <%= algo.stable ? 'tag-stable' : 'tag-unstable' %>"><%= algo.stable ? '✓ stable' : '✗ unstable' %></span>
-        </div>
-        <div class="algo-arrow">Visualize →</div>
-      </a>
-    <% }) %>
+<% const first = (d) => d.split(/(?<=\.)\s/)[0]; %>
+<% const o = (s) => s.includes('n²') ? 'o-bad' : (s.includes('log') ? 'o-good' : ''); %>
+<section class="hero">
+  <h1 class="hero-title">Watch an algorithm think.</h1>
+  <p class="hero-sub">Every comparison, swap and explored square, drawn out one step at a time next to the line of code doing it. Sorting, pathfinding and binary search trees, with sound if you want to hear them work.</p>
+  <div class="hero-actions">
+    <a href="/sorting/quick" class="btn-primary">Open the sorting bench</a>
+    <a href="/race" class="btn-ghost">Race sorts against each other</a>
   </div>
 </section>
 
-<!-- Pathfinding Section -->
-<section class="section section-dark">
-  <div class="section-header">
-    <div class="section-tag">🗺️ Pathfinding</div>
-    <h2 class="section-title">Pathfinding Algorithms</h2>
-    <p class="section-sub">Draw walls, set start & end points, watch algorithms navigate the grid</p>
+<section class="bench" aria-label="A sort running live">
+  <div class="bench-head">
+    <strong id="heroName">Quick sort</strong>
+    <span class="count">comparisons <b id="heroCmp">0</b></span>
+    <span class="count">swaps <b id="heroSwp">0</b></span>
+    <button class="btn-control" data-sound-toggle aria-pressed="false">Sound off</button>
+    <button class="btn-control" id="heroNext">Next algorithm</button>
   </div>
-  <div class="algo-grid">
-    <% pathfinding.forEach(algo => { %>
-      <a href="/pathfinding?algo=<%= algo.id %>" class="algo-card" style="--accent: <%= algo.color %>">
-        <div class="algo-card-top">
-          <span class="algo-emoji"><%= algo.emoji %></span>
-          <div class="algo-complexity">
-            <span class="complexity-label">Time</span>
-            <span class="complexity-val"><%= algo.complexity.time.average %></span>
-          </div>
-        </div>
-        <h3 class="algo-name"><%= algo.name %></h3>
-        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
-        <div class="algo-arrow">Visualize →</div>
-      </a>
-    <% }) %>
+  <div class="bars-container" id="heroBars" data-nolabels="1"></div>
+</section>
+
+<section class="toc">
+  <div class="toc-group">
+    <h2>Sorting</h2>
+    <p>Six ways to put numbers in order, from the ones you'd invent yourself to the ones libraries use.</p>
+    <ul class="toc-list">
+      <% sorting.forEach(a => { %>
+        <li><a href="/sorting/<%= a.id %>">
+          <span class="toc-name"><span class="swatch" style="background:<%= a.color %>"></span><%= a.name %></span>
+          <span class="toc-desc"><%= first(a.description) %></span>
+          <span class="toc-o"><%= a.complexity.time.average %></span>
+        </a></li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <div class="toc-group">
+    <h2>Pathfinding</h2>
+    <p>Draw walls on a grid and watch four searches look for the way through, then compare them on the same maze.</p>
+    <ul class="toc-list">
+      <% pathfinding.forEach(a => { %>
+        <li><a href="/pathfinding?algo=<%= a.id %>">
+          <span class="toc-name"><span class="swatch" style="background:<%= a.color %>"></span><%= a.name %></span>
+          <span class="toc-desc"><%= first(a.description) %></span>
+          <span class="toc-o"><%= a.complexity.time.average %></span>
+        </a></li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <div class="toc-group">
+    <h2>Trees</h2>
+    <p>Grow a binary search tree, search it, delete from it, and walk it in three orders.</p>
+    <ul class="toc-list">
+      <% trees.forEach(a => { %>
+        <li><a href="/trees">
+          <span class="toc-name"><span class="swatch" style="background:<%= a.color %>"></span><%= a.name %></span>
+          <span class="toc-desc"><%= first(a.description) %></span>
+          <span class="toc-o"><%= a.complexity.time.average %></span>
+        </a></li>
+      <% }) %>
+    </ul>
   </div>
 </section>
 
-<!-- Trees Section -->
-<section class="section">
-  <div class="section-header">
-    <div class="section-tag">🌳 Trees</div>
-    <h2 class="section-title">Tree Data Structures</h2>
-    <p class="section-sub">Insert, delete, and search — watch the tree restructure itself live</p>
-  </div>
-  <div class="algo-grid algo-grid-center">
-    <% trees.forEach(algo => { %>
-      <a href="/trees" class="algo-card" style="--accent: <%= algo.color %>">
-        <div class="algo-card-top">
-          <span class="algo-emoji"><%= algo.emoji %></span>
-          <div class="algo-complexity">
-            <span class="complexity-label">Avg</span>
-            <span class="complexity-val"><%= algo.complexity.time.average %></span>
-          </div>
-        </div>
-        <h3 class="algo-name"><%= algo.name %></h3>
-        <p class="algo-desc"><%= algo.description.substring(0, 80) %>…</p>
-        <div class="algo-arrow">Visualize →</div>
-      </a>
-    <% }) %>
-  </div>
-</section>
-
-<!-- Complexity Cheat Sheet -->
-<section class="section section-dark cheatsheet-section">
-  <div class="section-header">
-    <div class="section-tag">📋 Reference</div>
-    <h2 class="section-title">Complexity Cheat Sheet</h2>
-  </div>
-  <div class="cheatsheet-table-wrap">
-    <table class="cheatsheet-table">
-      <thead>
+<section class="cheatsheet">
+  <h2>Sorting at a glance</h2>
+  <div class="sheet-wrap"><table class="sheet">
+    <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th></tr></thead>
+    <tbody>
+      <% sorting.forEach(a => { %>
         <tr>
-          <th>Algorithm</th>
-          <th>Best</th>
-          <th>Average</th>
-          <th>Worst</th>
-          <th>Space</th>
-          <th>Stable</th>
+          <td><a href="/sorting/<%= a.id %>"><%= a.name %></a></td>
+          <td class="<%= o(a.complexity.time.best) %>"><%= a.complexity.time.best %></td>
+          <td class="<%= o(a.complexity.time.average) %>"><%= a.complexity.time.average %></td>
+          <td class="<%= o(a.complexity.time.worst) %>"><%= a.complexity.time.worst %></td>
+          <td><%= a.complexity.space %></td>
+          <td><%= a.stable ? 'yes' : 'no' %></td>
         </tr>
-      </thead>
-      <tbody>
-        <% sorting.forEach(algo => { %>
-          <tr>
-            <td><a href="/sorting/<%= algo.id %>" class="table-link"><%= algo.emoji %> <%= algo.name %></a></td>
-            <td class="<%= algo.complexity.time.best.includes('n²') ? 'complexity-bad' : algo.complexity.time.best.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.best %></td>
-            <td class="<%= algo.complexity.time.average.includes('n²') ? 'complexity-bad' : algo.complexity.time.average.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.average %></td>
-            <td class="<%= algo.complexity.time.worst.includes('n²') ? 'complexity-bad' : algo.complexity.time.worst.includes('log') ? 'complexity-good' : 'complexity-ok' %>"><%= algo.complexity.time.worst %></td>
-            <td><%= algo.complexity.space %></td>
-            <td><%= algo.stable ? '✅' : '❌' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+      <% }) %>
+    </tbody>
+  </table></div>
 </section>
+
+<footer class="foot">Built with Express and plain JavaScript. Every animation is generated from the real algorithm, step by step.</footer>
+
+<script src="/js/sound.js"></script>
+<script src="/js/algorithms/sorting.js"></script>
+<script src="/js/hero.js"></script>
