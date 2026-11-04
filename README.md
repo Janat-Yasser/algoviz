@@ -8,6 +8,8 @@ AlgoViz is an interactive visualizer for the algorithms every CS student meets f
 ![EJS](https://img.shields.io/badge/views-EJS-B4CA65)
 ![No DB](https://img.shields.io/badge/database-none-lightgrey)
 
+![Quick Sort mid-run, with the source code highlighting below](docs/sorting.png)
+
 ---
 
 ## What's inside
@@ -19,10 +21,15 @@ AlgoViz is an interactive visualizer for the algorithms every CS student meets f
 | **Trees** | Binary Search Tree | Insert, search and delete values; run in-order, pre-order and post-order traversals with animated highlighting |
 
 Every algorithm page shows:
+- **Source code that highlights line by line** as the algorithm runs, with a plain-English explanation of each step
 - Best, average and worst-case **time complexity**, plus **space complexity**
 - A plain-English description and real-world use cases
 - Live counters (comparisons, swaps, nodes visited, path length, tree height)
-- A speed slider
+- Play, pause, **single-step**, reset and shuffle controls, plus speed and array-size sliders
+
+| Pathfinding (A\* through a generated maze) | Binary search tree |
+|---|---|
+| ![A* pathfinding](docs/pathfinding.png) | ![BST](docs/trees.png) |
 
 ## Quick start
 
@@ -57,7 +64,7 @@ The server only renders pages and serves algorithm metadata. All the animation r
 ## Roadmap
 
 - [ ] More structures: AVL / red-black trees, heaps, hash tables
-- [ ] Step-through mode (next / previous step) alongside autoplay
+- [ ] Step backwards, not just forwards
 - [ ] Side-by-side race between two sorting algorithms
 - [ ] Deploy a live demo
 
