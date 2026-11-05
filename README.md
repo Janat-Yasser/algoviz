@@ -58,7 +58,7 @@ Open http://localhost:3000. No database or API keys. On the sorting page, **Spac
 <details>
 <summary>Design</summary>
 
-Clean and quiet, so the algorithm is the only thing moving: white space, soft rounded panels and calm state colours. Amber means comparing, coral means swapping, mint means in its final place, and periwinkle marks the pivot. Type is Inter, with IBM Plex Mono for code, self-hosted under `public/fonts` (SIL Open Font License).
+A dark graphite bench, so the algorithm's colours are the only bright thing on screen. Bars rest in grey; amber means comparing, red means swapping, mint means in its final place, violet marks the pivot, and active bars glow. The canvases have faint scale lines, like an instrument screen. Type is Space Grotesk, with JetBrains Mono for code and numbers, self-hosted under `public/fonts` (SIL Open Font License).
 
 ![The home page: a real sort running live under the headline](docs/home.png)
 
