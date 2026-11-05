@@ -180,7 +180,7 @@ function renderTree(highlightPath = [], highlightType = '') {
     text.setAttribute('x', '50%');
     text.setAttribute('y', '50%');
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', '#8592AB');
+    text.setAttribute('fill', '#A1A1A6');
     text.setAttribute('font-size', '14');
     text.textContent = 'Empty tree. Insert a value, or press Random tree.';
     svg.appendChild(text);
@@ -201,7 +201,7 @@ function renderTree(highlightPath = [], highlightType = '') {
       line.setAttribute('y2', node.left.y);
       line.setAttribute('class', 'tree-edge');
       const isHighlighted = highlightPath.includes(node.val) && highlightPath.includes(node.left.val);
-      if (isHighlighted) { line.setAttribute('stroke', '#2E6BFF'); line.setAttribute('stroke-width', '3'); }
+      if (isHighlighted) { line.setAttribute('stroke', '#7B8CFF'); line.setAttribute('stroke-width', '3'); }
       svg.appendChild(line);
       drawEdges(node.left);
     }
@@ -213,7 +213,7 @@ function renderTree(highlightPath = [], highlightType = '') {
       line.setAttribute('y2', node.right.y);
       line.setAttribute('class', 'tree-edge');
       const isHighlighted = highlightPath.includes(node.val) && highlightPath.includes(node.right.val);
-      if (isHighlighted) { line.setAttribute('stroke', '#2E6BFF'); line.setAttribute('stroke-width', '3'); }
+      if (isHighlighted) { line.setAttribute('stroke', '#7B8CFF'); line.setAttribute('stroke-width', '3'); }
       svg.appendChild(line);
       drawEdges(node.right);
     }
@@ -233,29 +233,29 @@ function renderTree(highlightPath = [], highlightType = '') {
     const isLast = highlightPath[highlightPath.length - 1] === node.val;
 
     if (isLast && highlightType === 'found') {
-      circle.setAttribute('fill', '#86E6A8');
-      circle.setAttribute('stroke', '#15233F');
+      circle.setAttribute('fill', '#5FD3A2');
+      circle.setAttribute('stroke', '#5FD3A2');
     } else if (isLast && highlightType === 'notFound') {
-      circle.setAttribute('fill', '#FF8AC0');
-      circle.setAttribute('stroke', '#15233F');
+      circle.setAttribute('fill', '#FF8577');
+      circle.setAttribute('stroke', '#FF8577');
     } else if (isLast && (highlightType === 'insert' || highlightType === 'delete')) {
-      circle.setAttribute('fill', '#2E6BFF');
-      circle.setAttribute('stroke', '#2E6BFF');
+      circle.setAttribute('fill', '#7B8CFF');
+      circle.setAttribute('stroke', '#7B8CFF');
     } else if (isInPath) {
-      circle.setAttribute('fill', '#FFE45E');
-      circle.setAttribute('stroke', '#15233F');
+      circle.setAttribute('fill', '#FFC85C');
+      circle.setAttribute('stroke', '#FFC85C');
     } else {
       circle.setAttribute('fill', '#FFFFFF');
-      circle.setAttribute('stroke', '#15233F');
+      circle.setAttribute('stroke', '#D7DBE3');
     }
     circle.setAttribute('stroke-width', '2');
 
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dy', '5');
-    text.setAttribute('fill', isLast && (highlightType === 'insert' || highlightType === 'delete') ? '#FFFFFF' : '#15233F');
+    text.setAttribute('fill', isLast && (highlightType === 'insert' || highlightType === 'delete') ? '#FFFFFF' : '#1D1D1F');
     text.setAttribute('font-size', node.val >= 100 ? '10' : '13');
-    text.setAttribute('font-family', 'IBM Plex Mono, monospace');
+    text.setAttribute('font-family', 'Inter, sans-serif');
     text.setAttribute('font-weight', '600');
     text.textContent = node.val;
 
