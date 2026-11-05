@@ -7,7 +7,7 @@
 ![Node](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-16%20passing-brightgreen)
 ![No DB](https://img.shields.io/badge/database-none-lightgrey)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey)
 
 ## Why it's interesting
 
@@ -98,4 +98,4 @@ Every sort ends sorted without losing elements, highlighted code lines exist, bu
 - Step backwards
 - Static build for GitHub Pages (the server only renders templates)
 
-MIT licensed.
+© 2026 Janat Yasser. All rights reserved. See [LICENSE](LICENSE).
