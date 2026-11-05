@@ -1,6 +1,6 @@
 # AlgoViz
 
-**Watch an algorithm think.** Sorting, pathfinding and binary search trees drawn out one step at a time on graph paper, with the line of code doing each step highlighted, a counter for every comparison and swap, and sound if you want to hear them work.
+**Watch an algorithm think.** Sorting, pathfinding and binary search trees drawn out one step at a time, with the line of code doing each step highlighted, a counter for every comparison and swap, and sound if you want to hear them work.
 
 ![Four sorts racing on the same 40 numbers: merge sort finishes first, bubble sort last](docs/race.gif)
 
@@ -58,7 +58,7 @@ Open http://localhost:3000. No database or API keys. On the sorting page, **Spac
 <details>
 <summary>Design</summary>
 
-The look is a graph-paper notebook: ink on squared paper with a red margin line, and highlighter for what the algorithm is doing. Yellow means comparing, pink means swapping, green means in its final place, and blue pencil marks the pivot. Type is Bricolage Grotesque and IBM Plex, self-hosted under `public/fonts` (SIL Open Font License).
+Clean and quiet, so the algorithm is the only thing moving: white space, soft rounded panels and calm state colours. Amber means comparing, coral means swapping, mint means in its final place, and periwinkle marks the pivot. Type is Inter, with IBM Plex Mono for code, self-hosted under `public/fonts` (SIL Open Font License).
 
 ![The home page: a real sort running live under the headline](docs/home.png)
 
