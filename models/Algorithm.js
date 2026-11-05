@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // Models — pure data, no DB needed for a visualizer
 const algorithms = {
   sorting: [

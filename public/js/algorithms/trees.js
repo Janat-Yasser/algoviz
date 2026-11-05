@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 /* =============================================
    BINARY SEARCH TREE VISUALIZER
    SVG-based with animated insert/delete/search

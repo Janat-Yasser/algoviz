@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // Sorting race: every lane gets the same array and advances one operation
 // (a comparison or a swap) per tick, so finishing order = fewest operations.
 (function () {

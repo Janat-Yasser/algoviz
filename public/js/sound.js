@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 /* Sonification: each compared or swapped bar plays a pitch that rises with its value,
    the way "sorting algorithms visualised and audibilised" videos do. Off by default. */
 const Sound = (() => {

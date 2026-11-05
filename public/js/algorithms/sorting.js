@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 /* =============================================
    SORTING VISUALIZER
    Generates all steps upfront, then plays them

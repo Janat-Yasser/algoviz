@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 /* =============================================
    PATHFINDING VISUALIZER
    Grid-based with Dijkstra, A*, BFS, DFS

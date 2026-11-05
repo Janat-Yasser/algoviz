@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // Mark the current section in the nav
 (function () {
   const path = window.location.pathname;

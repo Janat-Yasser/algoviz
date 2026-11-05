@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // Home page: a real sort running on loop. Uses generateSteps() from sorting.js.
 (function () {
   const box = document.getElementById('heroBars');
