@@ -9,6 +9,14 @@
 
   const picks = () => [...document.querySelectorAll('#racerPicks input:checked')];
 
+  // ?algos=quick,merge picks the racers in the browser too (the static demo has no server to read it)
+  const wanted = new URLSearchParams(location.search).get('algos');
+  if (wanted) {
+    const ids = wanted.split(',');
+    const boxes = [...document.querySelectorAll('#racerPicks input')];
+    if (boxes.some((b) => ids.includes(b.value))) boxes.forEach((b) => { b.checked = ids.includes(b.value); });
+  }
+
   function newNumbers() {
     base = makeInput(document.getElementById('raceInput').value, +document.getElementById('raceSize').value);
     build();
