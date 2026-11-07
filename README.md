@@ -1,101 +1,56 @@
 # AlgoViz
 
-**Watch an algorithm think.** Sorting, pathfinding and binary search trees drawn out one step at a time, with the line of code doing each step highlighted, a counter for every comparison and swap, and sound if you want to hear them work.
+[![CI](https://github.com/Janat-Yasser/algoviz/actions/workflows/ci.yml/badge.svg)](https://github.com/Janat-Yasser/algoviz/actions/workflows/ci.yml)
+
+Sorting, pathfinding and binary search trees, animated one step at a time. You see the code line doing each step, a counter for every comparison and swap, and you can hear them work if you turn the sound on.
+
+**[Open the live demo →](https://janat-yasser.github.io/algoviz/)** It runs in your browser, with nothing to install.
 
 ![Four sorts racing on the same 40 numbers: merge sort finishes first, bubble sort last](docs/race.gif)
 
-![Node](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-16%20passing-brightgreen)
-![No DB](https://img.shields.io/badge/database-none-lightgrey)
-![License](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey)
+## Five experiments to run
 
-## Why it's interesting
+**1. Does quick sort always win?**
+Open the [race between insertion sort and quick sort](https://janat-yasser.github.io/algoviz/race/?algos=insertion,quick) and set the input to *Nearly sorted*. Insertion sort finishes first because it barely has to move anything. Now try *Reversed*: quick sort takes its pivot from the last element, so it falls to its O(n²) worst case.
 
-- **Race mode.** Up to six sorts run on the same numbers, one comparison or swap per tick each, so the finishing order is the operation count. Switch the input to *nearly sorted* and insertion sort beats quick sort. Switch to *reversed* and quick sort (last-element pivot) falls to its O(n²) worst case.
-- **You can hear them.** Every compared or swapped bar plays a pitch that rises with its value, and a sorted array ends with a rising sweep. Each algorithm has its own sound: heap sort's sift-downs, merge sort's ladders.
-- **Compare all four searches on your own maze.** Draw walls, then run BFS, DFS, Dijkstra and A\* on the same grid in one click. A table shows cells explored and path length, and whether each path is the shortest.
-- **The animations are the real algorithm.** Each one runs as a pure function that records every step, and the page plays those steps back. That's what makes pause, single-step and mid-run edits safe, and it's what lets the tests check the algorithms themselves.
+**2. What does O(n log n) sound like?**
+In [merge sort](https://janat-yasser.github.io/algoviz/sorting/merge/), click the **Sound off** button to switch sound on, then play. Each compared bar plays a pitch that rises with its value. Merges climb like ladders; [heap sort](https://janat-yasser.github.io/algoviz/sorting/heap/) sounds like repeated sift-downs. A finished array ends on a rising sweep.
 
-| Sorting bench | Pathfinding, with all four compared | Binary search tree |
+**3. Which search explores least?**
+On [pathfinding](https://janat-yasser.github.io/algoviz/pathfinding/), draw a few walls and press *Compare all four*. BFS, DFS, Dijkstra and A\* run on your grid, and a table lists the cells each one explored, its path length and whether that path is the shortest. DFS usually finds *a* path, but rarely the shortest.
+
+**4. When does bubble sort finish early?**
+Give [bubble sort](https://janat-yasser.github.io/algoviz/sorting/bubble/) a *Nearly sorted* input and step with **→**. It stops after a pass with no swaps, which is why its best case is O(n).
+
+**5. How lopsided can a BST get?**
+In [trees](https://janat-yasser.github.io/algoviz/trees/), insert 10, 20, 30, 40, 50 in order. You get a linked list on its side, and a search walks every node. That's the problem AVL and red-black trees solve.
+
+| Sorting bench | Pathfinding, all four compared | Binary search tree |
 |---|---|---|
 | ![Quick sort mid-run with the partition line highlighted](docs/sorting.png) | ![A* through random walls, with the comparison table](docs/pathfinding.png) | ![A search for 50 lighting the path down the tree](docs/trees.png) |
 
-## How it works
+## Why the animations can be trusted
 
-```mermaid
-flowchart LR
-  I[Input<br/>random, nearly sorted,<br/>reversed, few values] --> G[generateSteps<br/>pure, no DOM]
-  G -->|list of steps| P[Player<br/>play, pause, step, speed]
-  P --> B[Bars + highlighted code line]
-  P --> S[Sound]
-  G --> R[Race<br/>same input, every lane]
-  W[Grid + walls] --> C[computeSearch<br/>BFS, DFS, Dijkstra, A*]
-  C --> P2[Animated search] & T[Compare-all table]
-```
+Each algorithm in `public/js/algorithms/` is a pure function. It runs to completion on the input and returns the list of every step it took: which bars it compared, what it swapped, the line of code involved. The page only plays that list back. That has three consequences:
 
-## Quick start
+- **Pause, step and speed changes can't desync anything.** The player just moves an index through the list.
+- **The race is fair.** Every lane gets the same array and advances one recorded operation per tick, so the finishing order *is* the operation count.
+- **The tests check the real algorithms** without a browser. Every sort ends sorted with nothing lost, BFS, Dijkstra and A\* agree on shortest paths, and the BST keeps its ordering.
+
+## Run it locally
 
 ```bash
-git clone https://github.com/Janat-Yasser/algoviz.git && cd algoviz
 npm install
-npm start
+npm start          # http://localhost:3000
+npm test           # 16 tests
+npm run build:static   # the GitHub Pages version, in dist/
 ```
 
-Open http://localhost:3000. No database or API keys. On the sorting page, **Space** plays and pauses, **→** steps, **R** gives new numbers.
+The static build has every page rendered by the real Express app, with relative links, so it works under `/algoviz/`. On the sorting page, **Space** plays and pauses, **→** steps and **R** gives new numbers.
 
-<details>
-<summary>What's inside</summary>
+## Notes
 
-| Module | Algorithms | What you can do |
-|---|---|---|
-| Sorting | Bubble, selection, insertion, merge, quick, heap | Step through with the code highlighting, pick the input shape, turn on sound |
-| Race | All six sorts | Run any of them side by side on the same numbers and see who finishes first |
-| Pathfinding | Dijkstra, A\*, BFS, DFS | Draw walls, move start and end, animate one search or compare all four |
-| Trees | Binary search tree | Insert, search and delete with the path animated; in-order, pre-order and post-order walks |
-
-</details>
-
-<details>
-<summary>Design</summary>
-
-A dark graphite bench, so the algorithm's colours are the only bright thing on screen. Bars rest in grey; amber means comparing, red means swapping, mint means in its final place, violet marks the pivot, and active bars glow. The canvases have faint scale lines, like an instrument screen. Type is Space Grotesk, with JetBrains Mono for code and numbers, self-hosted under `public/fonts` (SIL Open Font License).
-
-![The home page: a real sort running live under the headline](docs/home.png)
-
-</details>
-
-<details>
-<summary>Project layout</summary>
-
-```
-server.js                     Express app
-models/Algorithm.js           catalogue: names, complexity, descriptions
-controllers/, routes/         sorting, pathfinding, trees, race
-views/                        EJS pages (home, sorting, race, pathfinding, trees)
-public/js/algorithms/         sorting.js, pathfinding.js, trees.js: pure algorithms + players
-public/js/race.js             race lanes
-public/js/hero.js             the live sort on the home page
-public/js/sound.js            Web Audio sonification
-test/algorithms.test.js       node:test suite
-```
-
-</details>
-
-<details>
-<summary>Tests</summary>
-
-```bash
-npm test
-```
-
-Every sort ends sorted without losing elements, highlighted code lines exist, bubble sort's early exit makes its best case O(n), insertion sort counts its stopping comparison, BFS, Dijkstra and A\* agree on shortest paths, paths are valid, and the BST keeps its ordering.
-
-</details>
-
-## Roadmap
-
-- AVL and red-black trees, heaps, hash tables
-- Step backwards
-- Static build for GitHub Pages (the server only renders templates)
+- **Design:** a dark graphite bench, so the algorithm's colours are the only bright thing on screen. Amber means comparing, red swapping, mint placed for good, violet the pivot. Type is Space Grotesk with JetBrains Mono, self-hosted (SIL OFL).
+- **Next:** AVL and red-black trees, heaps, hash tables, and stepping backwards.
 
 © 2026 Janat Yasser. All rights reserved. See [LICENSE](LICENSE).
